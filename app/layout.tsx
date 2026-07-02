@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppBar } from "@/components/AppBar";
+import { CommandPaletteProvider } from "@/components/CommandPaletteProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -46,10 +47,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
-        <AppBar />
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
-          {children}
-        </main>
+        <CommandPaletteProvider>
+          <AppBar />
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+            {children}
+          </main>
+        </CommandPaletteProvider>
       </body>
     </html>
   );

@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { generateJson } from "@/lib/gemini";
 import { errorResponse, jsonError } from "@/lib/http";
 import {
-  screeningQuestionsPrompt,
-  screeningQuestionsResponseSchema,
+  candidateMessagesPrompt,
+  candidateMessagesResponseSchema,
 } from "@/lib/prompts";
 import { redactContactInfo } from "@/lib/redact";
-import { screeningQuestionsSchema } from "@/lib/schemas";
+import { candidateMessagesSchema } from "@/lib/schemas";
 import { db } from "@/lib/supabase";
 
 export const maxDuration = 60;
@@ -32,29 +32,19 @@ export async function POST(request: Request) {
       ? candidate.jobs[0]
       : candidate.jobs;
 
-    const questions = await generateJson({
-      prompt: screeningQuestionsPrompt({
+    const result = await generateJson({
+      prompt: candidateMessagesPrompt({
         jdText: job?.jd_text ?? "",
         candidateName: candidate.name,
         analysis: candidate.ai_analysis,
         resumeText: redactContactInfo(candidate.resume_text),
       }),
-      schema: screeningQuestionsSchema,
-      responseSchema: screeningQuestionsResponseSchema,
-      kind: "screening-questions",
+      schema: candidateMessagesSchema,
+      responseSchema: candidateMessagesResponseSchema,
+      kind: "candidate-messages",
     });
 
-    const { data: updated, error: updateError } = await db()
-      .from("candidates")
-      .update({
-        screening_questions: questions,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", candidateId)
-      .select()
-      .single();
-    if (updateError) throw new Error(updateError.message);
-    return NextResponse.json(updated);
+    return NextResponse.json(result);
   } catch (err) {
     return errorResponse(err);
   }

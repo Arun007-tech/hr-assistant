@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { ErrorBanner } from "@/components/ErrorBanner";
+import { NeedsAttention } from "@/components/NeedsAttention";
 import { PageHeader } from "@/components/PageHeader";
 import { Spinner } from "@/components/Spinner";
 import { api } from "@/lib/client";
@@ -39,6 +40,7 @@ export default function DashboardPage() {
         }
       />
       <ErrorBanner message={error} />
+      <NeedsAttention />
       {!jobs && !error && (
         <div className="flex justify-center py-16 text-stone-400">
           <Spinner />

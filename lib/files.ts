@@ -22,7 +22,7 @@ export async function fileToText(file: File): Promise<string> {
     return extractDocumentText({
       mimeType: "application/pdf",
       base64: buffer.toString("base64"),
-    });
+    }, "extract-pdf");
   }
   const text = buffer.toString("utf-8").trim();
   if (!text) throw new HttpError("The uploaded file appears to be empty.", 422);

@@ -27,8 +27,9 @@ Vertex AI / Google Cloud Console). Note: on the free tier Google may use inputs 
 improve its products — contact details are redacted before anything is sent.
 
 **3. Supabase** — [supabase.com](https://supabase.com) → *New project* (free plan,
-region `ap-south-1` Mumbai) → SQL Editor → run [supabase/schema.sql](supabase/schema.sql)
-→ Project Settings → API → copy the **Project URL** and **service_role** key.
+region `ap-south-1` Mumbai) → Project Settings → API → copy the **Project URL**
+and **service_role** key. Then apply the schema with the Supabase CLI (see
+[Database migrations](#database-migrations) below) instead of pasting SQL by hand.
 
 **4. Vercel** — [vercel.com](https://vercel.com) → sign up with GitHub → *Import*
 the repo → add Environment Variables:
@@ -53,6 +54,34 @@ cp .env.example .env.local   # fill in the same values
 npm install
 npm run dev
 ```
+
+## Database migrations
+
+Schema changes live as plain SQL files in [supabase/migrations/](supabase/migrations/),
+applied with the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)
+(no ORM — the app talks to Postgres directly via `supabase-js`, so migrations are
+just SQL). No global install needed; `npx` runs it.
+
+**One-time link** (per machine):
+```bash
+npx supabase login                    # opens a browser to authenticate
+npx supabase link --project-ref <ref> # <ref> is in your Supabase project URL/settings
+```
+
+**Apply pending migrations to the live project:**
+```bash
+npx supabase db push
+```
+
+**Add a new migration:**
+```bash
+npx supabase migration new <short_description>
+# edit the generated supabase/migrations/<timestamp>_<short_description>.sql
+npx supabase db push
+```
+
+Every migration file is idempotent (`create table if not exists`, `create or
+replace function`) so re-running is always safe.
 
 ## Free-tier gotchas
 

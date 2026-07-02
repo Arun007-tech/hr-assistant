@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { generateJson } from "@/lib/gemini";
 import { errorResponse, jsonError } from "@/lib/http";
-import { jdAnalysisPrompt, jdAnalysisResponseSchema } from "@/lib/prompts";
-import { jdAnalysisSchema } from "@/lib/schemas";
+import { jdQualityPrompt, jdQualityResponseSchema } from "@/lib/prompts";
+import { jdQualitySchema } from "@/lib/schemas";
 import { db } from "@/lib/supabase";
 
 export const maxDuration = 60;
@@ -21,24 +21,14 @@ export async function POST(request: Request) {
     if (error?.code === "PGRST116") return jsonError("Role not found.", 404);
     if (error) throw new Error(error.message);
 
-    const analysis = await generateJson({
-      prompt: jdAnalysisPrompt(job.jd_text),
-      schema: jdAnalysisSchema,
-      responseSchema: jdAnalysisResponseSchema,
-      kind: "analyze-jd",
+    const result = await generateJson({
+      prompt: jdQualityPrompt(job.jd_text),
+      schema: jdQualitySchema,
+      responseSchema: jdQualityResponseSchema,
+      kind: "jd-quality",
     });
 
-    const { data: updated, error: updateError } = await db()
-      .from("jobs")
-      .update({
-        ideal_profile: analysis.ideal_profile,
-        boolean_searches: analysis.boolean_searches,
-      })
-      .eq("id", jobId)
-      .select()
-      .single();
-    if (updateError) throw new Error(updateError.message);
-    return NextResponse.json(updated);
+    return NextResponse.json(result);
   } catch (err) {
     return errorResponse(err);
   }

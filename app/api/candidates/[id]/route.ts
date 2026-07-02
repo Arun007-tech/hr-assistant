@@ -45,6 +45,9 @@ export async function PATCH(request: Request, ctx: Ctx) {
     if (typeof body?.name === "string" && body.name.trim()) {
       updates.name = body.name.trim();
     }
+    if (typeof body?.resume_text === "string" && body.resume_text.trim()) {
+      updates.resume_text = body.resume_text.trim();
+    }
     if (Object.keys(updates).length === 0) {
       return jsonError("Nothing to update.", 400);
     }

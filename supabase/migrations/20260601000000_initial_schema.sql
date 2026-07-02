@@ -1,6 +1,6 @@
--- HR Assistant schema — run once in the Supabase SQL editor.
+-- HR Assistant — initial schema (jobs, candidates).
 
-create table jobs (
+create table if not exists jobs (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   jd_text text not null,
@@ -9,7 +9,7 @@ create table jobs (
   created_at timestamptz not null default now()
 );
 
-create table candidates (
+create table if not exists candidates (
   id uuid primary key default gen_random_uuid(),
   job_id uuid not null references jobs(id) on delete cascade,
   name text not null,
@@ -26,7 +26,7 @@ create table candidates (
   updated_at timestamptz not null default now()
 );
 
-create index candidates_job_id_idx on candidates (job_id);
+create index if not exists candidates_job_id_idx on candidates (job_id);
 
 -- All access goes through the app's server routes using the service-role key.
 -- RLS is enabled with no policies so the anon key grants nothing.

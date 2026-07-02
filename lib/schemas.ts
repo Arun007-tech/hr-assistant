@@ -32,6 +32,7 @@ export const jdAnalysisSchema = z.object({
 });
 
 export const candidateAnalysisSchema = z.object({
+  candidate_name: z.string().optional(),
   score: z.number().min(0).max(100),
   verdict: z.string(),
   summary: z.string(),
@@ -55,6 +56,57 @@ export const screeningQuestionsSchema = z.object({
     })
   ),
 });
+
+export const jdQualitySchema = z.object({
+  clarity_score: z.number().min(0).max(100),
+  issues: z.array(
+    z.object({
+      type: z.enum(["unclear", "exclusionary", "vague", "jargon"]),
+      text: z.string(),
+      suggestion: z.string(),
+    })
+  ),
+  rewritten_jd: z.string().nullable(),
+  summary: z.string(),
+});
+export type JdQuality = z.infer<typeof jdQualitySchema>;
+
+export const candidateMessagesSchema = z.object({
+  outreach: z.string(),
+  rejection: z.string(),
+  hiring_manager_summary: z.string(),
+});
+export type CandidateMessages = z.infer<typeof candidateMessagesSchema>;
+
+export const interviewPlanSchema = z.object({
+  rounds: z.array(
+    z.object({
+      name: z.string(),
+      format: z.string(),
+      duration_mins: z.number(),
+      focus_areas: z.array(z.string()),
+      sample_questions: z.array(z.string()),
+    })
+  ),
+  total_estimated_days: z.string(),
+});
+export type InterviewPlan = z.infer<typeof interviewPlanSchema>;
+
+export const callNotesEvaluationSchema = z.object({
+  strengths: z.array(z.string()),
+  concerns: z.array(z.string()),
+  recommendation: z.enum(["advance", "hold", "reject"]),
+  rationale: z.string(),
+});
+export type CallNotesEvaluation = z.infer<typeof callNotesEvaluationSchema>;
+
+export const pipelineDigestSchema = z.object({
+  headline: z.string(),
+  summary: z.string(),
+  highlights: z.array(z.string()),
+  stat_callouts: z.array(z.object({ label: z.string(), value: z.string() })),
+});
+export type PipelineDigest = z.infer<typeof pipelineDigestSchema>;
 
 export type IdealProfile = z.infer<typeof idealProfileSchema>;
 export type BooleanSearches = z.infer<typeof booleanSearchesSchema>;
@@ -93,6 +145,13 @@ export interface JobWithCandidates extends Job {
   candidates: CandidateSummary[];
 }
 
+export interface CandidateWithJob extends CandidateSummary {
+  job_id: string;
+  job_title: string;
+  notes: string;
+  updated_at: string;
+}
+
 export interface JobListItem {
   id: string;
   title: string;
@@ -100,4 +159,34 @@ export interface JobListItem {
   analyzed: boolean;
   counts: Record<CandidateStatus, number>;
   total: number;
+}
+
+export interface AiUsageRow {
+  id: string;
+  created_at: string;
+  kind: string;
+  status: "ok" | "error";
+  duration_ms: number;
+}
+
+export interface UsageKindSummary {
+  kind: string;
+  today: number;
+  this_week: number;
+  this_month: number;
+  errors_this_month: number;
+}
+
+export interface UsageSummary {
+  kinds: UsageKindSummary[];
+  total_today: number;
+  total_this_week: number;
+  total_this_month: number;
+}
+
+export interface DbSizeInfo {
+  bytes: number;
+  mb: number;
+  cap_mb: number;
+  pct: number;
 }

@@ -4,25 +4,31 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { CopyButton } from "@/components/CopyButton";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { PageHeader } from "@/components/PageHeader";
 import { ScoreRing } from "@/components/ScoreRing";
 import { Segmented } from "@/components/Segmented";
+import { SkillStatusIcon } from "@/components/SkillStatusIcon";
 import { Spinner } from "@/components/Spinner";
 import { api, patchJson, postJson } from "@/lib/client";
 import {
+  CANDIDATE_SOURCES,
   CANDIDATE_STATUSES,
+  type CallNotesEvaluation,
   type Candidate,
+  type CandidateMessages,
+  type CandidateSource,
   type CandidateStatus,
 } from "@/lib/schemas";
 
-type CandidateDetail = Candidate & { job_title: string };
-
-const skillIcon = {
-  strong: { symbol: "✓", className: "text-emerald-600" },
-  partial: { symbol: "~", className: "text-amber-600" },
-  missing: { symbol: "✕", className: "text-red-500" },
+const recommendationStyles: Record<string, string> = {
+  advance: "bg-emerald-100 text-emerald-800",
+  hold: "bg-amber-100 text-amber-800",
+  reject: "bg-red-100 text-red-700",
 };
+
+type CandidateDetail = Candidate & { job_title: string };
 
 const focusLabels: Record<string, { label: string; className: string }> = {
   must_have: { label: "Must-have", className: "bg-accent-soft text-accent-ink" },
@@ -44,6 +50,17 @@ export default function CandidatePage() {
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">(
     "idle"
   );
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editSource, setEditSource] = useState<CandidateSource>("linkedin");
+  const [editResumeText, setEditResumeText] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [messages, setMessages] = useState<CandidateMessages | null>(null);
+  const [draftingMessages, setDraftingMessages] = useState(false);
+  const [notesEval, setNotesEval] = useState<CallNotesEvaluation | null>(
+    null
+  );
+  const [evaluatingNotes, setEvaluatingNotes] = useState(false);
 
   useEffect(() => {
     api<CandidateDetail>(`/api/candidates/${cid}`)
@@ -54,6 +71,36 @@ export default function CandidatePage() {
       })
       .catch((err) => setError(err.message));
   }, [cid]);
+
+  function startEditing() {
+    if (!candidate) return;
+    setEditName(candidate.name);
+    setEditSource(candidate.source);
+    setEditResumeText(candidate.resume_text ?? "");
+    setEditing(true);
+  }
+
+  async function saveCandidateEdits() {
+    if (!editName.trim()) {
+      setError("Name can't be empty.");
+      return;
+    }
+    setSavingEdit(true);
+    setError(null);
+    try {
+      const updated = await patchJson<Candidate>(`/api/candidates/${cid}`, {
+        name: editName.trim(),
+        source: editSource,
+        resume_text: editResumeText.trim(),
+      });
+      merge(updated);
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save changes.");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
 
   useEffect(() => {
     if (notes === savedNotes.current) return;
@@ -119,6 +166,40 @@ export default function CandidatePage() {
     }
   }
 
+  async function draftMessages() {
+    setDraftingMessages(true);
+    setError(null);
+    try {
+      const result = await postJson<CandidateMessages>(
+        "/api/ai/candidate-messages",
+        { candidate_id: cid }
+      );
+      setMessages(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not draft messages.");
+    } finally {
+      setDraftingMessages(false);
+    }
+  }
+
+  async function evaluateNotes() {
+    setEvaluatingNotes(true);
+    setError(null);
+    try {
+      const result = await postJson<CallNotesEvaluation>(
+        "/api/ai/evaluate-notes",
+        { candidate_id: cid }
+      );
+      setNotesEval(result);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not evaluate notes."
+      );
+    } finally {
+      setEvaluatingNotes(false);
+    }
+  }
+
   async function deleteCandidate() {
     if (!confirm("Delete this candidate? This cannot be undone.")) return;
     try {
@@ -153,13 +234,74 @@ export default function CandidatePage() {
         subtitle={`${candidate.job_title} · via ${candidate.source}`}
         backHref={`/jobs/${id}`}
         action={
-          <Button variant="danger" onClick={deleteCandidate}>
-            Delete
-          </Button>
+          editing ? (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => setEditing(false)}
+                disabled={savingEdit}
+              >
+                Cancel
+              </Button>
+              <Button onClick={saveCandidateEdits} loading={savingEdit}>
+                Save
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="secondary" onClick={startEditing}>
+                Edit
+              </Button>
+              <Button variant="danger" onClick={deleteCandidate}>
+                Delete
+              </Button>
+            </>
+          )
         }
       />
       <ErrorBanner message={error} />
       <div className="flex flex-col gap-4">
+        {editing && (
+          <Card title="Edit candidate">
+            <div className="flex flex-col gap-4">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-stone-700">
+                  Name
+                </span>
+                <input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
+                />
+              </label>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-stone-700">
+                  Source
+                </span>
+                <Segmented
+                  options={CANDIDATE_SOURCES}
+                  value={editSource}
+                  onChange={setEditSource}
+                />
+              </div>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-stone-700">
+                  Resume / profile text
+                </span>
+                <textarea
+                  value={editResumeText}
+                  onChange={(e) => setEditResumeText(e.target.value)}
+                  rows={10}
+                  className="rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
+                />
+              </label>
+              <p className="text-xs text-stone-400">
+                Editing the resume text does not automatically re-score — use
+                Re-score below when you&apos;re ready.
+              </p>
+            </div>
+          </Card>
+        )}
         <Card title="Status">
           <Segmented
             options={CANDIDATE_STATUSES}
@@ -208,10 +350,8 @@ export default function CandidatePage() {
               <div className="mb-4 flex flex-col gap-2">
                 {analysis.skills_match.map((s) => (
                   <div key={s.skill} className="flex items-start gap-2.5">
-                    <span
-                      className={`mt-0.5 w-4 shrink-0 text-center font-bold ${skillIcon[s.status].className}`}
-                    >
-                      {skillIcon[s.status].symbol}
+                    <span className="mt-0.5">
+                      <SkillStatusIcon status={s.status} />
                     </span>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-stone-800">
@@ -299,6 +439,56 @@ export default function CandidatePage() {
         </Card>
 
         <Card
+          title="Draft messages"
+          action={
+            messages && (
+              <Button
+                variant="secondary"
+                onClick={draftMessages}
+                loading={draftingMessages}
+                className="!min-h-11 !px-4 !text-sm"
+              >
+                Regenerate
+              </Button>
+            )
+          }
+        >
+          {!messages ? (
+            <div className="flex flex-col items-start gap-3">
+              <p className="text-sm text-stone-500">
+                Generate ready-to-send outreach, rejection, and hiring-manager
+                summary drafts for this candidate.
+              </p>
+              <Button onClick={draftMessages} loading={draftingMessages}>
+                {draftingMessages ? "Drafting…" : "Generate drafts"}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {(
+                [
+                  ["Outreach", messages.outreach],
+                  ["Rejection", messages.rejection],
+                  ["Hiring manager summary", messages.hiring_manager_summary],
+                ] as const
+              ).map(([label, text]) => (
+                <div key={label}>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-stone-700">
+                      {label}
+                    </h3>
+                    <CopyButton text={text} />
+                  </div>
+                  <p className="rounded-lg bg-stone-50 p-3 text-sm leading-relaxed whitespace-pre-wrap text-stone-700">
+                    {text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <Card
           title="Notes"
           action={
             <span className="text-xs text-stone-400">
@@ -317,9 +507,61 @@ export default function CandidatePage() {
             placeholder="Call notes, availability, impressions…"
             className="w-full rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
           />
+          {notes.trim().length > 0 && (
+            <div className="mt-3">
+              <Button
+                variant="secondary"
+                onClick={evaluateNotes}
+                loading={evaluatingNotes}
+                className="!min-h-11 !px-4 !text-sm"
+              >
+                {evaluatingNotes
+                  ? "Evaluating…"
+                  : notesEval
+                    ? "Re-evaluate notes"
+                    : "Evaluate notes"}
+              </Button>
+              {notesEval && (
+                <div className="mt-3 rounded-xl bg-stone-50 p-3">
+                  <span
+                    className={`mb-2 inline-block rounded-full px-2.5 py-1 text-xs font-medium capitalize ${recommendationStyles[notesEval.recommendation]}`}
+                  >
+                    {notesEval.recommendation}
+                  </span>
+                  <p className="mb-2 text-sm text-stone-600">
+                    {notesEval.rationale}
+                  </p>
+                  {notesEval.strengths.length > 0 && (
+                    <div className="mb-2">
+                      <p className="text-xs font-medium text-stone-700">
+                        Strengths
+                      </p>
+                      <ul className="text-sm text-stone-600">
+                        {notesEval.strengths.map((s) => (
+                          <li key={s}>• {s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {notesEval.concerns.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-stone-700">
+                        Concerns
+                      </p>
+                      <ul className="text-sm text-stone-600">
+                        {notesEval.concerns.map((c) => (
+                          <li key={c}>• {c}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </Card>
 
-        {candidate.resume_text && (
+        {candidate.resume_text && !editing && (
           <details className="rounded-2xl border border-stone-200 bg-surface shadow-[0_1px_2px_rgba(33,28,22,0.04)]">
             <summary className="min-h-12 cursor-pointer px-5 py-3.5 text-base font-semibold text-foreground sm:px-6">
               Resume / profile text

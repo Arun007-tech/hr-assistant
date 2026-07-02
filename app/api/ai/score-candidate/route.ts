@@ -30,6 +30,7 @@ async function analyze(
     }),
     schema: candidateAnalysisSchema,
     responseSchema: candidateAnalysisResponseSchema,
+    kind: "score-candidate",
   });
 }
 
@@ -44,18 +45,19 @@ async function fetchJob(jobId: string) {
   return data;
 }
 
-// Create + score a new candidate (multipart form).
+// Create + score a new candidate (multipart form). `name` is optional — when
+// omitted (bulk upload), the AI-extracted candidate_name from the analysis
+// is used instead, falling back to a placeholder if analysis itself fails.
 async function createAndScore(request: Request) {
   const form = await request.formData();
   const jobId = String(form.get("job_id") ?? "");
-  const name = String(form.get("name") ?? "").trim();
+  const typedName = String(form.get("name") ?? "").trim();
   const sourceRaw = String(form.get("source") ?? "other");
   const source = (CANDIDATE_SOURCES as readonly string[]).includes(sourceRaw)
     ? sourceRaw
     : "other";
 
   if (!jobId) return jsonError("job_id is required.", 400);
-  if (!name) return jsonError("Candidate name is required.", 400);
 
   let resumeText = String(form.get("resume_text") ?? "").trim();
   const file = form.get("file");
@@ -77,6 +79,8 @@ async function createAndScore(request: Request) {
     if (!(err instanceof AiError)) throw err;
     aiError = err.message;
   }
+
+  const name = typedName || analysis?.candidate_name || "Unnamed candidate";
 
   const { data: candidate, error } = await db()
     .from("candidates")
