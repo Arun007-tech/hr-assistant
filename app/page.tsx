@@ -12,7 +12,7 @@ import { formatDate } from "@/lib/format";
 import type { JobListItem } from "@/lib/schemas";
 
 const countStyles: Record<string, string> = {
-  sourced: "bg-slate-100 text-slate-700",
+  sourced: "bg-stone-100 text-stone-700",
   screening: "bg-amber-100 text-amber-800",
   shortlisted: "bg-emerald-100 text-emerald-800",
   rejected: "bg-red-100 text-red-700",
@@ -29,37 +29,27 @@ export default function DashboardPage() {
       .catch((err) => setError(err.message));
   }, []);
 
-  async function lock() {
-    await fetch("/api/auth", { method: "DELETE" });
-    router.replace("/login");
-  }
-
   return (
     <>
       <PageHeader
         title="Roles"
         subtitle="Your open positions and candidate pipelines"
         action={
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={lock} aria-label="Lock app">
-              Lock
-            </Button>
-            <Button onClick={() => router.push("/jobs/new")}>+ New role</Button>
-          </div>
+          <Button onClick={() => router.push("/jobs/new")}>+ New role</Button>
         }
       />
       <ErrorBanner message={error} />
       {!jobs && !error && (
-        <div className="flex justify-center py-16 text-slate-400">
+        <div className="flex justify-center py-16 text-stone-400">
           <Spinner />
         </div>
       )}
       {jobs && jobs.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-          <p className="mb-1 text-lg font-semibold text-slate-700">
+        <div className="rounded-2xl border border-dashed border-stone-300 bg-surface p-10 text-center sm:p-16">
+          <p className="mb-1 text-lg font-semibold text-foreground">
             No roles yet
           </p>
-          <p className="mb-5 text-sm text-slate-500">
+          <p className="mx-auto mb-5 max-w-sm text-sm text-stone-500">
             Paste a job description to get an ideal candidate profile and
             ready-to-use search strings.
           </p>
@@ -68,24 +58,24 @@ export default function DashboardPage() {
           </Button>
         </div>
       )}
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
         {jobs?.map((job) => (
           <Link
             key={job.id}
             href={`/jobs/${job.id}`}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors active:bg-slate-50"
+            className="group rounded-2xl border border-stone-200 bg-surface p-5 shadow-[0_1px_2px_rgba(33,28,22,0.04)] transition-all hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-md active:translate-y-0 active:bg-stone-50"
           >
-            <div className="mb-2 flex items-start justify-between gap-3">
-              <h2 className="text-lg font-semibold text-slate-900">
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <h2 className="min-w-0 truncate text-lg font-semibold tracking-tight text-foreground group-hover:text-accent">
                 {job.title}
               </h2>
-              <span className="shrink-0 text-xs text-slate-400">
+              <span className="shrink-0 text-xs text-stone-400">
                 {formatDate(job.created_at)}
               </span>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               {job.total === 0 ? (
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-stone-400">
                   No candidates yet
                 </span>
               ) : (
@@ -101,7 +91,7 @@ export default function DashboardPage() {
                   ))
               )}
               {!job.analyzed && (
-                <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-medium text-sky-700">
+                <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent-ink">
                   JD not analyzed
                 </span>
               )}

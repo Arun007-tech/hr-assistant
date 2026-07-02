@@ -25,11 +25,11 @@ const skillIcon = {
 };
 
 const focusLabels: Record<string, { label: string; className: string }> = {
-  must_have: { label: "Must-have", className: "bg-sky-100 text-sky-700" },
+  must_have: { label: "Must-have", className: "bg-accent-soft text-accent-ink" },
   gap: { label: "Gap", className: "bg-red-100 text-red-700" },
   experience: { label: "Experience", className: "bg-violet-100 text-violet-700" },
   behavioral: { label: "Behavioral", className: "bg-amber-100 text-amber-800" },
-  logistics: { label: "Logistics", className: "bg-slate-100 text-slate-600" },
+  logistics: { label: "Logistics", className: "bg-stone-100 text-stone-600" },
 };
 
 export default function CandidatePage() {
@@ -131,15 +131,15 @@ export default function CandidatePage() {
 
   if (!candidate) {
     return (
-      <>
+      <div className="mx-auto max-w-3xl">
         <PageHeader title="Candidate" backHref={`/jobs/${id}`} />
         <ErrorBanner message={error} />
         {!error && (
-          <div className="flex justify-center py-16 text-slate-400">
+          <div className="flex justify-center py-16 text-stone-400">
             <Spinner />
           </div>
         )}
-      </>
+      </div>
     );
   }
 
@@ -147,7 +147,7 @@ export default function CandidatePage() {
   const questions = candidate.screening_questions?.questions ?? [];
 
   return (
-    <>
+    <div className="mx-auto max-w-3xl">
       <PageHeader
         title={candidate.name}
         subtitle={`${candidate.job_title} · via ${candidate.source}`}
@@ -185,7 +185,7 @@ export default function CandidatePage() {
         >
           {!analysis ? (
             <div className="flex flex-col items-start gap-3">
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-stone-500">
                 No AI analysis yet for this candidate.
               </p>
               <Button onClick={rescore} loading={scoring}>
@@ -197,10 +197,10 @@ export default function CandidatePage() {
               <div className="mb-4 flex items-center gap-4">
                 <ScoreRing score={candidate.score} />
                 <div className="min-w-0">
-                  <p className="font-semibold text-slate-900">
+                  <p className="font-semibold text-foreground">
                     {analysis.verdict}
                   </p>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                  <p className="mt-1 text-sm leading-relaxed text-stone-600">
                     {analysis.summary}
                   </p>
                 </div>
@@ -214,24 +214,24 @@ export default function CandidatePage() {
                       {skillIcon[s.status].symbol}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-slate-800">
+                      <p className="text-sm font-medium text-stone-800">
                         {s.skill}
                       </p>
-                      <p className="text-sm text-slate-500">{s.evidence}</p>
+                      <p className="text-sm text-stone-500">{s.evidence}</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <p className="mb-3 text-sm leading-relaxed text-slate-600">
-                <span className="font-medium text-slate-700">Experience: </span>
+              <p className="mb-3 text-sm leading-relaxed text-stone-600">
+                <span className="font-medium text-stone-700">Experience: </span>
                 {analysis.experience_relevance}
               </p>
               {analysis.gaps.length > 0 && (
                 <div>
-                  <p className="mb-1.5 text-sm font-medium text-slate-700">
+                  <p className="mb-1.5 text-sm font-medium text-stone-700">
                     Gaps to probe
                   </p>
-                  <ul className="flex flex-col gap-1 text-sm text-slate-600">
+                  <ul className="flex flex-col gap-1 text-sm text-stone-600">
                     {analysis.gaps.map((gap) => (
                       <li key={gap}>• {gap}</li>
                     ))}
@@ -259,7 +259,7 @@ export default function CandidatePage() {
         >
           {questions.length === 0 ? (
             <div className="flex flex-col items-start gap-3">
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-stone-500">
                 Generate call questions tailored to this JD and this
                 candidate&apos;s gaps.
               </p>
@@ -274,10 +274,10 @@ export default function CandidatePage() {
                 return (
                   <li key={i} className="flex flex-col gap-1">
                     <div className="flex items-start gap-2">
-                      <span className="text-sm font-bold text-slate-400">
+                      <span className="text-sm font-bold text-stone-400">
                         {i + 1}.
                       </span>
-                      <p className="text-[15px] font-medium text-slate-900">
+                      <p className="text-[15px] font-medium text-foreground">
                         {q.question}
                       </p>
                     </div>
@@ -287,7 +287,7 @@ export default function CandidatePage() {
                       >
                         {focus.label}
                       </span>
-                      <span className="text-sm text-slate-500">
+                      <span className="text-sm text-stone-500">
                         Listen for: {q.listen_for}
                       </span>
                     </div>
@@ -301,7 +301,7 @@ export default function CandidatePage() {
         <Card
           title="Notes"
           action={
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-stone-400">
               {saveState === "saving" && "Saving…"}
               {saveState === "saved" && "Saved ✓"}
               {saveState === "error" && (
@@ -315,21 +315,21 @@ export default function CandidatePage() {
             onChange={(e) => setNotes(e.target.value)}
             rows={6}
             placeholder="Call notes, availability, impressions…"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base focus:border-sky-500 focus:outline-none"
+            className="w-full rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
           />
         </Card>
 
         {candidate.resume_text && (
-          <details className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <summary className="min-h-12 cursor-pointer px-5 py-3.5 text-base font-semibold text-slate-900">
+          <details className="rounded-2xl border border-stone-200 bg-surface shadow-[0_1px_2px_rgba(33,28,22,0.04)]">
+            <summary className="min-h-12 cursor-pointer px-5 py-3.5 text-base font-semibold text-foreground sm:px-6">
               Resume / profile text
             </summary>
-            <pre className="border-t border-slate-100 px-5 py-4 font-sans text-sm whitespace-pre-wrap text-slate-600">
+            <pre className="border-t border-stone-100 px-5 py-4 font-sans text-sm whitespace-pre-wrap text-stone-600 sm:px-6">
               {candidate.resume_text}
             </pre>
           </details>
         )}
       </div>
-    </>
+    </div>
   );
 }

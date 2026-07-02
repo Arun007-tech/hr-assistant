@@ -18,7 +18,8 @@ export function errorResponse(err: unknown): NextResponse {
   if (err instanceof HttpError) {
     return jsonError(err.message, err.status);
   }
+  // Unrecognized errors (e.g. raw Postgres/network failures) may contain
+  // internal details — log them server-side but never forward them as-is.
   console.error(err);
-  const message = err instanceof Error ? err.message : "Unexpected error";
-  return jsonError(message, 500);
+  return jsonError("Something went wrong — please try again.", 500);
 }

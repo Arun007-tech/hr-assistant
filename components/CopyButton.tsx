@@ -12,10 +12,10 @@ export function CopyButton({ text }: { text: string }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       }}
-      className={`min-h-11 shrink-0 rounded-lg px-3 text-sm font-medium transition-colors ${
+      className={`min-h-11 shrink-0 cursor-pointer rounded-lg px-3 text-sm font-medium transition-colors ${
         copied
           ? "bg-emerald-100 text-emerald-700"
-          : "bg-slate-100 text-slate-700 active:bg-slate-200"
+          : "bg-stone-100 text-stone-700 hover:bg-stone-200 active:bg-stone-200"
       }`}
     >
       {copied ? "Copied ✓" : "Copy"}

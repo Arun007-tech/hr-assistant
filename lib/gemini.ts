@@ -13,6 +13,10 @@ function client(): GoogleGenAI {
   return new GoogleGenAI({ apiKey });
 }
 
+function isTransient(message: string): boolean {
+  return /503|UNAVAILABLE|overloaded|high demand/i.test(message);
+}
+
 function toAiError(err: unknown): AiError {
   if (err instanceof AiError) return err;
   const message = err instanceof Error ? err.message : String(err);
@@ -22,23 +26,37 @@ function toAiError(err: unknown): AiError {
       429
     );
   }
-  return new AiError(`AI request failed: ${message}`, 502);
+  if (isTransient(message)) {
+    return new AiError(
+      "The AI model is temporarily overloaded — try again in a few seconds.",
+      503
+    );
+  }
+  return new AiError("AI request failed — try again.", 502);
 }
 
 async function generate(
   parts: Part[],
   config: Record<string, unknown>
 ): Promise<string> {
-  try {
-    const response = await client().models.generateContent({
-      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
-      contents: [{ role: "user", parts }],
-      config,
-    });
-    return response.text ?? "";
-  } catch (err) {
-    throw toAiError(err);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await client().models.generateContent({
+        model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+        contents: [{ role: "user", parts }],
+        config,
+      });
+      return response.text ?? "";
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (attempt === 0 && isTransient(message)) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        continue;
+      }
+      throw toAiError(err);
+    }
   }
+  throw new AiError("AI request failed — try again.", 502);
 }
 
 export async function generateJson<T>(options: {

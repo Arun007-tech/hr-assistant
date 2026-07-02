@@ -1,7 +1,7 @@
 import type { CandidateStatus } from "@/lib/schemas";
 
 const styles: Record<CandidateStatus, string> = {
-  sourced: "bg-slate-100 text-slate-700",
+  sourced: "bg-stone-100 text-stone-700",
   screening: "bg-amber-100 text-amber-800",
   shortlisted: "bg-emerald-100 text-emerald-800",
   rejected: "bg-red-100 text-red-700",

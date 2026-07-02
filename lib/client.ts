@@ -1,10 +1,17 @@
 "use client";
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, init);
+  let res: Response;
+  try {
+    res = await fetch(path, init);
+  } catch {
+    throw new Error("Network error — check your connection and try again.");
+  }
   if (res.status === 401) {
     window.location.href = "/login";
-    throw new Error("Session expired — logging in again.");
+    // Navigation is async — never resolve so callers don't briefly render
+    // an error before the redirect takes effect.
+    return new Promise<T>(() => {});
   }
   const body = await res.json().catch(() => null);
   if (!res.ok) {

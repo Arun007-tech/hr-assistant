@@ -26,8 +26,8 @@ type Sort = (typeof SORTS)[number];
 
 const chipTones = {
   emerald: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  slate: "border-slate-200 bg-slate-50 text-slate-600",
-  sky: "border-sky-200 bg-sky-50 text-sky-800",
+  stone: "border-stone-200 bg-stone-50 text-stone-600",
+  accent: "border-accent-soft bg-accent-soft text-accent-ink",
 };
 
 function Chip({
@@ -48,7 +48,7 @@ function Chip({
 
 function scoreColor(score: number): string {
   if (score >= 75) return "text-emerald-600";
-  if (score >= 50) return "text-amber-600";
+  if (score >= 50) return "text-accent";
   return "text-red-600";
 }
 
@@ -56,11 +56,11 @@ function SearchStrings({ label, strings }: { label: string; strings: string[] })
   if (strings.length === 0) return null;
   return (
     <div className="mb-4 last:mb-0">
-      <h3 className="mb-2 text-sm font-semibold text-slate-700">{label}</h3>
+      <h3 className="mb-2 text-sm font-semibold text-stone-700">{label}</h3>
       <div className="flex flex-col gap-2">
         {strings.map((s, i) => (
           <div key={i} className="flex items-center gap-2">
-            <code className="min-w-0 flex-1 rounded-lg bg-slate-50 p-3 font-mono text-sm break-words whitespace-pre-wrap text-slate-800">
+            <code className="min-w-0 flex-1 rounded-lg bg-stone-50 p-3 font-mono text-sm break-words whitespace-pre-wrap text-stone-800">
               {s}
             </code>
             <CopyButton text={s} />
@@ -130,7 +130,7 @@ export default function JobPage() {
         <PageHeader title="Role" backHref="/" />
         <ErrorBanner message={error} />
         {!error && (
-          <div className="flex justify-center py-16 text-slate-400">
+          <div className="flex justify-center py-16 text-stone-400">
             <Spinner />
           </div>
         )}
@@ -167,7 +167,7 @@ export default function JobPage() {
       <div className="flex flex-col gap-4">
         {!profile && (
           <Card title="AI analysis">
-            <p className="mb-4 text-sm text-slate-500">
+            <p className="mb-4 text-sm text-stone-500">
               Generate the ideal candidate profile and Boolean search strings
               for this JD.
             </p>
@@ -177,102 +177,112 @@ export default function JobPage() {
           </Card>
         )}
 
-        {profile && (
-          <Card
-            title="Ideal candidate"
-            action={
-              <Button
-                variant="secondary"
-                onClick={runAnalysis}
-                loading={analyzing}
-                className="!min-h-11 !px-4 !text-sm"
+        {(profile || searches) && (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
+            {profile && (
+              <Card
+                title="Ideal candidate"
+                action={
+                  <Button
+                    variant="secondary"
+                    onClick={runAnalysis}
+                    loading={analyzing}
+                    className="!min-h-11 !px-4 !text-sm"
+                  >
+                    Regenerate
+                  </Button>
+                }
               >
-                Regenerate
-              </Button>
-            }
-          >
-            <p className="mb-4 text-sm leading-relaxed text-slate-600">
-              {profile.summary}
-            </p>
-            <div className="flex flex-col gap-3 text-sm">
-              <div>
-                <p className="mb-1.5 font-medium text-slate-700">Must have</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {profile.must_have_skills.map((s) => (
-                    <Chip key={s} tone="emerald">
-                      {s}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-              {profile.nice_to_have_skills.length > 0 && (
-                <div>
-                  <p className="mb-1.5 font-medium text-slate-700">
-                    Nice to have
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {profile.nice_to_have_skills.map((s) => (
-                      <Chip key={s} tone="slate">
-                        {s}
-                      </Chip>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <p>
-                <span className="font-medium text-slate-700">Experience: </span>
-                <span className="text-slate-600">
-                  {profile.experience_range}
-                </span>
-              </p>
-              <div>
-                <p className="mb-1.5 font-medium text-slate-700">
-                  Titles to search for
+                <p className="mb-4 text-sm leading-relaxed text-stone-600">
+                  {profile.summary}
                 </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {profile.likely_titles.map((t) => (
-                    <Chip key={t} tone="sky">
-                      {t}
-                    </Chip>
-                  ))}
+                <div className="flex flex-col gap-3 text-sm">
+                  <div>
+                    <p className="mb-1.5 font-medium text-stone-700">
+                      Must have
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {profile.must_have_skills.map((s) => (
+                        <Chip key={s} tone="emerald">
+                          {s}
+                        </Chip>
+                      ))}
+                    </div>
+                  </div>
+                  {profile.nice_to_have_skills.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 font-medium text-stone-700">
+                        Nice to have
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {profile.nice_to_have_skills.map((s) => (
+                          <Chip key={s} tone="stone">
+                            {s}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <p>
+                    <span className="font-medium text-stone-700">
+                      Experience:{" "}
+                    </span>
+                    <span className="text-stone-600">
+                      {profile.experience_range}
+                    </span>
+                  </p>
+                  <div>
+                    <p className="mb-1.5 font-medium text-stone-700">
+                      Titles to search for
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {profile.likely_titles.map((t) => (
+                        <Chip key={t} tone="accent">
+                          {t}
+                        </Chip>
+                      ))}
+                    </div>
+                  </div>
+                  {profile.red_flags.length > 0 && (
+                    <div>
+                      <p className="mb-1.5 font-medium text-stone-700">
+                        Red flags
+                      </p>
+                      <ul className="flex flex-col gap-1 text-stone-600">
+                        {profile.red_flags.map((flag) => (
+                          <li key={flag}>⚠️ {flag}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
-              </div>
-              {profile.red_flags.length > 0 && (
-                <div>
-                  <p className="mb-1.5 font-medium text-slate-700">Red flags</p>
-                  <ul className="flex flex-col gap-1 text-slate-600">
-                    {profile.red_flags.map((flag) => (
-                      <li key={flag}>⚠️ {flag}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
-
-        {searches && (
-          <Card title="Search strings">
-            <SearchStrings label="LinkedIn" strings={searches.linkedin} />
-            <SearchStrings label="Naukri" strings={searches.naukri} />
-            {searches.apna_keywords.length > 0 && (
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-slate-700">
-                    Apna keywords
-                  </h3>
-                  <CopyButton text={searches.apna_keywords.join(", ")} />
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {searches.apna_keywords.map((k) => (
-                    <Chip key={k} tone="slate">
-                      {k}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
+              </Card>
             )}
-          </Card>
+
+            {searches && (
+              <Card title="Search strings">
+                <SearchStrings label="LinkedIn" strings={searches.linkedin} />
+                <SearchStrings label="Naukri" strings={searches.naukri} />
+                {searches.apna_keywords.length > 0 && (
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-stone-700">
+                        Apna keywords
+                      </h3>
+                      <CopyButton text={searches.apna_keywords.join(", ")} />
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {searches.apna_keywords.map((k) => (
+                        <Chip key={k} tone="stone">
+                          {k}
+                        </Chip>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            )}
+          </div>
         )}
 
         <Card
@@ -303,24 +313,24 @@ export default function JobPage() {
             </div>
           )}
           {candidates.length === 0 ? (
-            <p className="py-4 text-center text-sm text-slate-400">
+            <p className="py-4 text-center text-sm text-stone-400">
               {job.candidates.length === 0
                 ? "No candidates yet — add one you found on LinkedIn, Naukri or Apna."
                 : "No candidates with this status."}
             </p>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {candidates.map((c) => (
                 <Link
                   key={c.id}
                   href={`/jobs/${id}/candidates/${c.id}`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3.5 transition-colors active:bg-slate-50"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 px-4 py-3.5 transition-colors hover:border-stone-300 hover:bg-stone-50 active:bg-stone-100"
                 >
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-900">
+                    <p className="truncate font-medium text-foreground">
                       {c.name}
                     </p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-stone-400">
                       <span className="capitalize">{c.source}</span> ·{" "}
                       {formatDate(c.created_at)}
                     </p>
@@ -341,11 +351,11 @@ export default function JobPage() {
           )}
         </Card>
 
-        <details className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <summary className="min-h-12 cursor-pointer px-5 py-3.5 text-base font-semibold text-slate-900">
+        <details className="rounded-2xl border border-stone-200 bg-surface shadow-[0_1px_2px_rgba(33,28,22,0.04)]">
+          <summary className="min-h-12 cursor-pointer px-5 py-3.5 text-base font-semibold text-foreground sm:px-6">
             Job description
           </summary>
-          <pre className="border-t border-slate-100 px-5 py-4 font-sans text-sm whitespace-pre-wrap text-slate-600">
+          <pre className="border-t border-stone-100 px-5 py-4 font-sans text-sm whitespace-pre-wrap text-stone-600 sm:px-6">
             {job.jd_text}
           </pre>
         </details>

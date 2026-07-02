@@ -3,11 +3,12 @@
 import { Spinner } from "@/components/Spinner";
 
 const variants = {
-  primary: "bg-sky-600 text-white active:bg-sky-700 disabled:bg-slate-300",
+  primary:
+    "bg-accent text-white shadow-sm hover:bg-accent-hover active:bg-accent-hover disabled:bg-stone-300 disabled:shadow-none",
   secondary:
-    "bg-white border border-slate-300 text-slate-700 active:bg-slate-100 disabled:text-slate-400",
+    "border border-stone-300 bg-surface text-stone-700 hover:bg-stone-50 active:bg-stone-100 disabled:text-stone-400",
   danger:
-    "bg-white border border-red-300 text-red-600 active:bg-red-50 disabled:text-slate-400",
+    "border border-red-200 bg-surface text-red-600 hover:bg-red-50 active:bg-red-100 disabled:text-stone-400",
 };
 
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -26,7 +27,7 @@ export function Button({
     <button
       {...props}
       disabled={props.disabled || loading}
-      className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-5 text-base font-medium transition-colors ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl px-5 text-base font-medium transition-colors disabled:cursor-not-allowed ${variants[variant]} ${className}`}
     >
       {loading && <Spinner className="size-4" />}
       {children}

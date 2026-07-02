@@ -18,10 +18,10 @@ export function Segmented<T extends string>({
           key={option}
           type="button"
           onClick={() => onChange(option)}
-          className={`min-h-11 rounded-full px-4 text-sm font-medium capitalize transition-colors ${
+          className={`min-h-11 cursor-pointer rounded-full px-4 text-sm font-medium capitalize transition-colors ${
             value === option
-              ? "bg-slate-900 text-white"
-              : "border border-slate-300 bg-white text-slate-600 active:bg-slate-100"
+              ? "bg-foreground text-white"
+              : "border border-stone-300 bg-surface text-stone-600 hover:bg-stone-50 active:bg-stone-100"
           }`}
         >
           {labels?.[option] ?? option}

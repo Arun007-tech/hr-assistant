@@ -42,3 +42,4 @@ next-env.d.ts
 
 # committed env template
 !.env.example
+.env
