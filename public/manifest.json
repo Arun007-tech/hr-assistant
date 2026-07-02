@@ -1,0 +1,13 @@
+{
+  "name": "HR Assistant",
+  "short_name": "HR Assist",
+  "description": "JD analysis, candidate scoring, and screening prep",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
