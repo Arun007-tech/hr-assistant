@@ -7,6 +7,7 @@ import { useCommandPalette } from "@/components/CommandPaletteProvider";
 const NAV_LINKS = [
   { href: "/candidates", label: "Candidates" },
   { href: "/analytics", label: "Analytics" },
+  { href: "/settings/email-templates", label: "Templates" },
   { href: "/usage", label: "Usage" },
 ];
 

@@ -138,6 +138,7 @@ export interface Candidate extends CandidateSummary {
   ai_analysis: CandidateAnalysis | null;
   screening_questions: ScreeningQuestions | null;
   notes: string;
+  phone: string | null;
   updated_at: string;
 }
 
@@ -149,8 +150,36 @@ export interface CandidateWithJob extends CandidateSummary {
   job_id: string;
   job_title: string;
   notes: string;
+  phone: string | null;
   updated_at: string;
 }
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  greeting: string;
+  signature: string;
+  created_at: string;
+}
+
+export const emailDraftSchema = z.object({
+  subject: z.string(),
+  body: z.string(),
+});
+export type EmailDraft = z.infer<typeof emailDraftSchema>;
+
+export const assistantAnswerSchema = z.object({
+  answer: z.string(),
+  citations: z.array(
+    z.object({
+      type: z.enum(["job", "candidate"]),
+      id: z.string(),
+      label: z.string(),
+    })
+  ),
+});
+export type AssistantAnswer = z.infer<typeof assistantAnswerSchema>;
 
 export interface JobListItem {
   id: string;

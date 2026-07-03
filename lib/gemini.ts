@@ -123,3 +123,30 @@ export async function extractDocumentText(
   }
   return text.trim();
 }
+
+const POLISH_INSTRUCTION =
+  "Transcribe this audio, then rewrite it as clean, well-punctuated notes: " +
+  "remove filler words (um, like, you know), fix run-ons, keep her intent and " +
+  "every fact/name/number exactly as said. Output only the polished text, no commentary.";
+const RAW_INSTRUCTION =
+  "Transcribe this audio exactly as spoken, correcting only obvious punctuation. " +
+  "Output only the transcript, no commentary.";
+
+export async function transcribeAndPolish(
+  audio: { mimeType: string; base64: string },
+  mode: "raw" | "polish",
+  kind: string = "transcribe"
+): Promise<string> {
+  const text = await generate(
+    [
+      { inlineData: { mimeType: audio.mimeType, data: audio.base64 } },
+      { text: mode === "polish" ? POLISH_INSTRUCTION : RAW_INSTRUCTION },
+    ],
+    { temperature: mode === "polish" ? 0.3 : 0 },
+    kind
+  );
+  if (!text.trim()) {
+    throw new AiError("Could not transcribe — try recording again.", 422);
+  }
+  return text.trim();
+}

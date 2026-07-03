@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     let query = db()
       .from("candidates")
       .select(
-        "id, name, source, score, status, created_at, job_id, notes, updated_at, jobs(title)"
+        "id, name, source, score, status, created_at, job_id, notes, phone, updated_at, jobs(title)"
       )
       .order("created_at", { ascending: false });
 

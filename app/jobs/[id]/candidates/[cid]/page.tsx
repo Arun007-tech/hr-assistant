@@ -7,10 +7,12 @@ import { Card } from "@/components/Card";
 import { CopyButton } from "@/components/CopyButton";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { PageHeader } from "@/components/PageHeader";
+import { QuickShare } from "@/components/QuickShare";
 import { ScoreRing } from "@/components/ScoreRing";
 import { Segmented } from "@/components/Segmented";
 import { SkillStatusIcon } from "@/components/SkillStatusIcon";
 import { Spinner } from "@/components/Spinner";
+import { VoiceInput } from "@/components/VoiceInput";
 import { api, patchJson, postJson } from "@/lib/client";
 import {
   CANDIDATE_SOURCES,
@@ -20,6 +22,7 @@ import {
   type CandidateMessages,
   type CandidateSource,
   type CandidateStatus,
+  type EmailTemplate,
 } from "@/lib/schemas";
 
 const recommendationStyles: Record<string, string> = {
@@ -54,6 +57,7 @@ export default function CandidatePage() {
   const [editName, setEditName] = useState("");
   const [editSource, setEditSource] = useState<CandidateSource>("linkedin");
   const [editResumeText, setEditResumeText] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
   const [messages, setMessages] = useState<CandidateMessages | null>(null);
   const [draftingMessages, setDraftingMessages] = useState(false);
@@ -61,6 +65,7 @@ export default function CandidatePage() {
     null
   );
   const [evaluatingNotes, setEvaluatingNotes] = useState(false);
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
 
   useEffect(() => {
     api<CandidateDetail>(`/api/candidates/${cid}`)
@@ -70,6 +75,7 @@ export default function CandidatePage() {
         savedNotes.current = c.notes;
       })
       .catch((err) => setError(err.message));
+    api<EmailTemplate[]>("/api/email-templates").then(setTemplates, () => {});
   }, [cid]);
 
   function startEditing() {
@@ -77,6 +83,7 @@ export default function CandidatePage() {
     setEditName(candidate.name);
     setEditSource(candidate.source);
     setEditResumeText(candidate.resume_text ?? "");
+    setEditPhone(candidate.phone ?? "");
     setEditing(true);
   }
 
@@ -92,6 +99,7 @@ export default function CandidatePage() {
         name: editName.trim(),
         source: editSource,
         resume_text: editResumeText.trim(),
+        phone: editPhone.trim(),
       });
       merge(updated);
       setEditing(false);
@@ -284,6 +292,17 @@ export default function CandidatePage() {
                   onChange={setEditSource}
                 />
               </div>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-stone-700">
+                  Phone (for WhatsApp/SMS quick-share, +91XXXXXXXXXX)
+                </span>
+                <input
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  placeholder="+919876543210"
+                  className="rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
+                />
+              </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-sm font-medium text-stone-700">
                   Resume / profile text
@@ -488,6 +507,12 @@ export default function CandidatePage() {
           )}
         </Card>
 
+        <QuickShare
+          candidateId={cid}
+          phone={candidate.phone}
+          templates={templates}
+        />
+
         <Card
           title="Notes"
           action={
@@ -507,6 +532,13 @@ export default function CandidatePage() {
             placeholder="Call notes, availability, impressions…"
             className="w-full rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
           />
+          <div className="mt-2">
+            <VoiceInput
+              onResult={(text) =>
+                setNotes((prev) => (prev.trim() ? `${prev}\n${text}` : text))
+              }
+            />
+          </div>
           {notes.trim().length > 0 && (
             <div className="mt-3">
               <Button

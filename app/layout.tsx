@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppBar } from "@/components/AppBar";
+import { ChatBubble } from "@/components/ChatBubble";
 import { CommandPaletteProvider } from "@/components/CommandPaletteProvider";
 import "./globals.css";
 
@@ -53,6 +54,7 @@ export default function RootLayout({
             {children}
           </main>
         </CommandPaletteProvider>
+        <ChatBubble />
       </body>
     </html>
   );

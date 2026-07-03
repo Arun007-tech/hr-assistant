@@ -1,6 +1,10 @@
 import "server-only";
 import { Type } from "@google/genai";
-import type { CandidateAnalysis, IdealProfile } from "@/lib/schemas";
+import type {
+  CandidateAnalysis,
+  EmailTemplate,
+  IdealProfile,
+} from "@/lib/schemas";
 
 const stringArray = { type: Type.ARRAY, items: { type: Type.STRING } };
 
@@ -457,4 +461,80 @@ PIPELINE STATS:
 """
 ${JSON.stringify(stats, null, 2)}
 """`;
+}
+
+export const emailDraftResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    subject: { type: Type.STRING },
+    body: { type: Type.STRING },
+  },
+  required: ["subject", "body"],
+};
+
+export function emailDraftPrompt(input: {
+  template: EmailTemplate;
+  transcript: string;
+  candidateContext?: string;
+}): string {
+  const contextBlock = input.candidateContext
+    ? `\nCANDIDATE CONTEXT (for reference, do not invent facts beyond this):\n"""\n${input.candidateContext}\n"""\n`
+    : "";
+  return `You are a recruiter's assistant turning a spoken note into a polished
+email, using her saved template as the voice/structure guide.
+
+TEMPLATE (subject line style, greeting style, sign-off — mirror the tone):
+Subject: ${input.template.subject}
+Greeting: ${input.template.greeting}
+Signature: ${input.template.signature}
+${contextBlock}
+WHAT SHE SAID (spoken, may be rough — capture her intent, not her exact words):
+"""
+${input.transcript}
+"""
+
+Produce:
+- subject: a subject line for this specific message, adapted from the template style
+- body: full email body, opening with a greeting in her style, the message content
+  written clearly and professionally from what she said, closing with her signature.
+  Do not invent details she didn't mention.`;
+}
+
+export const assistantAnswerResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    answer: { type: Type.STRING },
+    citations: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          type: { type: Type.STRING, enum: ["job", "candidate"] },
+          id: { type: Type.STRING },
+          label: { type: Type.STRING },
+        },
+        required: ["type", "id", "label"],
+      },
+    },
+  },
+  required: ["answer", "citations"],
+};
+
+export function assistantPrompt(question: string, snapshot: unknown): string {
+  return `You are a recruiter's assistant answering a natural-language question
+about her current jobs and candidates. Use ONLY the data below — never invent
+candidates, scores, or facts not present here.
+
+Answer conversationally but concisely (2-6 sentences, or a short list if the
+question calls for one). When you mention a specific job or candidate, add a
+citation entry: {type, id, label} using the id from the data below.
+
+If the data doesn't contain enough to answer, say so plainly.
+
+DATA SNAPSHOT (jobs + candidates, current state):
+"""
+${JSON.stringify(snapshot, null, 2)}
+"""
+
+QUESTION: ${question}`;
 }
