@@ -26,14 +26,45 @@ function blobToBase64(blob: Blob): Promise<string> {
   });
 }
 
+function MicIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="size-5">
+      <path
+        d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M19 11a7 7 0 0 1-14 0M12 18v3"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function StopIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="size-4">
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+    </svg>
+  );
+}
+
 export function VoiceInput({
   onResult,
   mode = "polish",
   className = "",
+  hint,
+  compact = false,
 }: {
   onResult: (text: string) => void;
   mode?: "raw" | "polish";
   className?: string;
+  hint?: string;
+  /** Icon-only, no label/hint — for tight inline spaces (e.g. next to another input). */
+  compact?: boolean;
 }) {
   const [state, setState] = useState<"idle" | "recording" | "processing" | "error">(
     "idle"
@@ -91,27 +122,43 @@ export function VoiceInput({
   }
 
   return (
-    <div className={`inline-flex items-center gap-2 ${className}`}>
-      <button
-        type="button"
-        onClick={state === "recording" ? stop : start}
-        disabled={state === "processing"}
-        aria-label={state === "recording" ? "Stop recording" : "Start voice input"}
-        className={`flex size-11 shrink-0 items-center justify-center rounded-full text-lg transition-colors disabled:opacity-50 ${
-          state === "recording"
-            ? "animate-pulse bg-red-500 text-white"
-            : "bg-accent-soft text-accent-ink hover:bg-accent-soft/80"
-        }`}
-      >
-        {state === "processing" ? "…" : state === "recording" ? "■" : "🎤"}
-      </button>
-      {state === "recording" && (
-        <span className="text-xs text-stone-500">Recording — tap to stop</span>
+    <div className={className}>
+      <div className="inline-flex items-center gap-2.5">
+        <button
+          type="button"
+          onClick={state === "recording" ? stop : start}
+          disabled={state === "processing"}
+          aria-label={state === "recording" ? "Stop recording" : "Start voice input"}
+          className={`flex shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-50 ${
+            compact ? "size-9" : "size-10"
+          } ${
+            state === "recording"
+              ? "animate-pulse bg-red-500 text-white"
+              : "bg-accent-soft text-accent-ink hover:bg-accent-soft/80"
+          }`}
+        >
+          {state === "processing" ? (
+            <span className="text-sm">…</span>
+          ) : state === "recording" ? (
+            <StopIcon />
+          ) : (
+            <MicIcon />
+          )}
+        </button>
+        {!compact && (
+          <span className="text-sm text-stone-400">
+            {state === "recording"
+              ? "Recording — tap to stop"
+              : state === "processing"
+                ? "Transcribing…"
+                : "Talk to your assistant"}
+          </span>
+        )}
+      </div>
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {hint && !compact && state === "idle" && (
+        <p className="mt-1 text-xs text-stone-400">{hint}</p>
       )}
-      {state === "processing" && (
-        <span className="text-xs text-stone-500">Transcribing…</span>
-      )}
-      {error && <span className="text-xs text-red-500">{error}</span>}
     </div>
   );
 }

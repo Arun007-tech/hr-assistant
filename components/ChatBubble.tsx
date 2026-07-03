@@ -119,7 +119,7 @@ export function ChatBubble() {
                 placeholder="Ask a question…"
                 className="min-h-11 flex-1 rounded-xl border border-stone-300 px-3 text-sm text-foreground focus:border-accent focus:outline-none"
               />
-              <VoiceInput mode="raw" onResult={ask} />
+              <VoiceInput mode="raw" onResult={ask} compact />
             </div>
           </div>
         </div>

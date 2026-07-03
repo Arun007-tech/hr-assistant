@@ -537,6 +537,7 @@ export default function CandidatePage() {
               onResult={(text) =>
                 setNotes((prev) => (prev.trim() ? `${prev}\n${text}` : text))
               }
+              hint="Speak freely — filler words get cleaned up and added below."
             />
           </div>
           {notes.trim().length > 0 && (

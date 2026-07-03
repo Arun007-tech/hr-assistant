@@ -67,7 +67,12 @@ export function QuickShare({
           </option>
         ))}
       </select>
-      <VoiceInput mode="raw" onResult={setTranscript} className="mb-3" />
+      <VoiceInput
+        mode="raw"
+        onResult={setTranscript}
+        className="mb-3"
+        hint="Say what you want the message to cover — it's turned into a full draft using your template."
+      />
       {transcript && (
         <p className="mb-3 rounded-lg bg-stone-50 p-3 text-sm text-stone-600 italic">
           &ldquo;{transcript}&rdquo;
