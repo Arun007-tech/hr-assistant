@@ -1,5 +1,6 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import { useRef, useState } from "react";
 import { postJson } from "@/lib/client";
 
@@ -128,8 +129,12 @@ export function VoiceInput({
           type="button"
           onClick={state === "recording" ? stop : start}
           disabled={state === "processing"}
-          aria-label={state === "recording" ? "Stop recording" : "Start voice input"}
-          className={`flex shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-50 ${
+          aria-label={
+            state === "recording"
+              ? "Stop recording"
+              : "Start voice input — transcribed and polished by AI"
+          }
+          className={`relative flex shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-50 ${
             compact ? "size-9" : "size-10"
           } ${
             state === "recording"
@@ -144,6 +149,12 @@ export function VoiceInput({
           ) : (
             <MicIcon />
           )}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-accent ring-2 ring-surface"
+          >
+            <Sparkles className="size-2.5 text-white" />
+          </span>
         </button>
         {!compact && (
           <span className="text-sm text-faint">

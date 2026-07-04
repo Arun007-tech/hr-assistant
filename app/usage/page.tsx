@@ -23,6 +23,16 @@ const KIND_LABELS: Record<string, string> = {
   "interview-plan": "Interview plan",
   "evaluate-notes": "Notes evaluation",
   "pipeline-digest": "Pipeline digest",
+  "capture": "Quick capture",
+  "assistant": "Ask anything",
+  "offer-helper": "Offer helper",
+  "reference-questions": "Reference questions",
+  "compose-email": "Compose email",
+  "rewrite-text": "Rewrite & tone",
+  "quick-summary": "Quick summarize",
+  "explain-term": "Explain a term",
+  "job-post": "Job post writer",
+  "boolean-generator": "Boolean search generator",
 };
 
 function kindLabel(kind: string): string {

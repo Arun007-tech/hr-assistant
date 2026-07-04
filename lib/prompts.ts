@@ -4,6 +4,7 @@ import type {
   CandidateAnalysis,
   EmailTemplate,
   IdealProfile,
+  Tone,
 } from "@/lib/schemas";
 
 const stringArray = { type: Type.ARRAY, items: { type: Type.STRING } };
@@ -632,4 +633,203 @@ JOB DESCRIPTION:
 ${input.jdText}
 """
 ${claimsBlock}`;
+}
+
+export const captureActionResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    action: {
+      type: Type.STRING,
+      enum: ["todo", "note", "draft_reply", "add_candidate"],
+    },
+    text: { type: Type.STRING },
+    candidate_id: { type: Type.STRING, nullable: true },
+    job_id: { type: Type.STRING, nullable: true },
+    draft_reply: { type: Type.STRING, nullable: true },
+  },
+  required: ["action", "text", "candidate_id", "job_id", "draft_reply"],
+};
+
+export function captureRoutingPrompt(input: {
+  raw: string;
+  candidates: { id: string; name: string; job_id: string }[];
+  jobs: { id: string; title: string }[];
+}): string {
+  return `A technical recruiter just dictated or pasted something into a
+general-purpose "quick capture" box — it is not tied to any specific
+candidate or job screen. Decide what she most likely wants done with it and
+respond with exactly one action:
+
+- "todo": a task or reminder for later (e.g. "follow up with Rohan Thursday",
+  "renew the job posting", "call the client back"). Set text to a clean,
+  short version of the task. If a candidate or job is clearly named, set
+  candidate_id/job_id to its id from the lists below; otherwise null.
+- "note": information worth remembering, not an action (e.g. "Priya said
+  she's open to relocating"). Same id-matching rules as todo.
+- "draft_reply": the input reads like a message FROM someone (a candidate,
+  hiring manager, vendor) that expects a reply (e.g. pasted WhatsApp/email
+  text asking a question). Set draft_reply to a short, professional reply
+  in her voice (first person, as the recruiter), and text to a one-line
+  description of what the reply is about.
+- "add_candidate": the input reads like a resume, LinkedIn/Naukri profile,
+  or bio of a NEW person she's considering (long block describing someone's
+  skills/experience, not a message to her). Set text to the person's name if
+  you can identify one, otherwise a short description. Do not set
+  candidate_id (this is a new person, not an existing one).
+
+Only set candidate_id/job_id when a name/title is clearly, unambiguously
+present in both the input and the list below — never guess. Fields not used
+by the chosen action must be null.
+
+EXISTING CANDIDATES (id, name, job_id):
+"""
+${JSON.stringify(input.candidates)}
+"""
+
+EXISTING JOBS (id, title):
+"""
+${JSON.stringify(input.jobs)}
+"""
+
+CAPTURED INPUT (verbatim, may be rough speech-to-text or a raw paste):
+"""
+${input.raw}
+"""`;
+}
+
+// Generic AI tools (/ai-tools) — freeform, not tied to a candidate or job record.
+
+export const composedEmailResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    subject: { type: Type.STRING },
+    body: { type: Type.STRING },
+  },
+  required: ["subject", "body"],
+};
+
+export function composeEmailPrompt(input: { brief: string; tone: Tone }): string {
+  return `A recruiter needs to send an email. Write it in a ${input.tone} tone,
+first person (as the recruiter, sender), ready to send with minimal editing.
+Include a greeting and a sign-off placeholder like "[Your name]".
+
+WHAT SHE TOLD YOU ABOUT IT (who it's to, what it's about — may be rough notes):
+"""
+${input.brief}
+"""`;
+}
+
+export const rewrittenTextResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    rewritten: { type: Type.STRING },
+  },
+  required: ["rewritten"],
+};
+
+export function rewriteTextPrompt(input: { text: string; tone: Tone }): string {
+  return `Rewrite the text below in a ${input.tone} tone. Keep the same
+meaning and length in the same ballpark — don't pad it out or cut content,
+just change how it reads. Return only the rewritten text, no commentary.
+
+TEXT:
+"""
+${input.text}
+"""`;
+}
+
+export const quickSummaryResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    summary: { type: Type.STRING },
+    key_points: stringArray,
+  },
+  required: ["summary", "key_points"],
+};
+
+export function quickSummaryPrompt(text: string): string {
+  return `Summarize the text below for a busy recruiter who needs to catch up
+fast before a call or a decision. Produce:
+- summary: 2-3 sentences, the gist
+- key_points: 3-6 short bullet points of anything actionable or notable
+
+TEXT:
+"""
+${text}
+"""`;
+}
+
+export const termExplanationResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    explanation: { type: Type.STRING },
+    why_it_matters_for_hiring: { type: Type.STRING },
+  },
+  required: ["explanation", "why_it_matters_for_hiring"],
+};
+
+export function termExplanationPrompt(term: string): string {
+  return `Explain the following skill, tool, acronym, or technical term to a
+non-technical technical recruiter who needs to screen for it but doesn't work
+with it hands-on. Produce:
+- explanation: plain-language, 2-4 sentences, no jargon left unexplained
+- why_it_matters_for_hiring: 1-2 sentences on what to look for or ask about
+  when a candidate claims this skill
+
+TERM:
+"""
+${term}
+"""`;
+}
+
+export const jobPostResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    title_suggestion: { type: Type.STRING },
+    job_post: { type: Type.STRING },
+  },
+  required: ["title_suggestion", "job_post"],
+};
+
+export function jobPostPrompt(roughNotes: string): string {
+  return `Turn the rough notes below into a polished, well-structured job
+post ready to publish on LinkedIn/Naukri. Include sections for a short intro,
+responsibilities, requirements, and nice-to-haves where the notes support
+them. Do not invent requirements that aren't implied by the notes.
+
+Produce:
+- title_suggestion: a clean job title for this role
+- job_post: the full post, formatted with line breaks between sections
+
+ROUGH NOTES:
+"""
+${roughNotes}
+"""`;
+}
+
+export const booleanGeneratorResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    linkedin: stringArray,
+    naukri: stringArray,
+    apna_keywords: stringArray,
+  },
+  required: ["linkedin", "naukri", "apna_keywords"],
+};
+
+export function booleanGeneratorPrompt(skillsOrKeywords: string): string {
+  return `A recruiter wants to source candidates and gave you a freeform list
+of skills/keywords (no full job description exists yet). Produce Boolean
+search strings the recruiter will paste manually into each platform:
+- linkedin: 3-4 full Boolean strings using AND, OR, NOT, quotes and
+  parentheses. Include one broad variant and one narrow/precise variant.
+  Include common synonyms and abbreviations (e.g. "Kubernetes" OR "K8s").
+- naukri: 3-4 keyword strings for Naukri's keyword search — shorter,
+  keyword-dense, no location/experience (those are separate filters there).
+- apna_keywords: 5-8 short single keywords or two-word phrases.
+
+SKILLS / KEYWORDS:
+"""
+${skillsOrKeywords}
+"""`;
 }

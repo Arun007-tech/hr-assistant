@@ -1,11 +1,21 @@
 "use client";
 
-import { ChevronDown, Menu, Moon, Search, Sun, X } from "lucide-react";
+import {
+  ChevronDown,
+  Menu,
+  Mic,
+  Moon,
+  Search,
+  Sparkles,
+  Sun,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useCommandPalette } from "@/components/CommandPaletteProvider";
+import { useQuickCapture } from "@/components/QuickCaptureProvider";
 
 const NAV_LINKS = [
   { href: "/", label: "Roles" },
@@ -13,6 +23,8 @@ const NAV_LINKS = [
   { href: "/analytics", label: "Analytics" },
   { href: "/settings/email-templates", label: "Templates" },
   { href: "/usage", label: "Usage" },
+  { href: "/settings/appearance", label: "Appearance" },
+  { href: "/ai-tools", label: "AI Tools" },
 ];
 
 // Desktop nav keeps only these inline; the rest live behind "More" so the
@@ -29,6 +41,7 @@ export function AppBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { open: openPalette } = useCommandPalette();
+  const { open: openCapture } = useQuickCapture();
   const { resolvedTheme, setTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -60,7 +73,7 @@ export function AppBar() {
           onClick={() => setMenuOpen((v) => !v)}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
-          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-muted transition-colors active:bg-subtle sm:hidden"
+          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-muted transition-colors active:bg-subtle md:hidden"
         >
           {menuOpen ? (
             <X className="size-6" aria-hidden />
@@ -76,12 +89,12 @@ export function AppBar() {
           <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent text-xs font-bold text-white">
             HR
           </span>
-          <span className="hidden text-[15px] font-semibold tracking-tight text-foreground sm:inline">
+          <span className="hidden text-[15px] font-semibold tracking-tight text-foreground md:inline">
             HR Assistant
           </span>
         </Link>
 
-        <nav className="hidden min-w-0 flex-1 items-center gap-1 sm:flex">
+        <nav className="hidden flex-1 items-center gap-1 md:flex">
           {PRIMARY_LINKS.map((link) => (
             <Link
               key={link.href}
@@ -145,12 +158,27 @@ export function AppBar() {
           </div>
         </nav>
 
-        <div className="flex-1 sm:hidden" />
+        <div className="flex-1 md:hidden" />
 
         <button
           type="button"
+          onClick={openCapture}
+          aria-label="Say or paste anything — routed by AI"
+          title="Say or paste anything — routed by AI"
+          className="relative flex min-h-9 min-w-9 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-subtle hover:text-foreground active:bg-subtle"
+        >
+          <Mic className="size-[18px]" aria-hidden />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute top-0.5 right-0.5 flex size-3 items-center justify-center rounded-full bg-accent ring-2 ring-background"
+          >
+            <Sparkles className="size-2 text-white" />
+          </span>
+        </button>
+        <button
+          type="button"
           onClick={openPalette}
-          className="hidden min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border px-2.5 text-xs font-medium text-muted transition-colors hover:bg-subtle hover:text-foreground active:bg-subtle md:flex"
+          className="hidden min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border px-2.5 text-xs font-medium text-muted transition-colors hover:bg-subtle hover:text-foreground active:bg-subtle lg:flex"
           aria-label="Open command palette"
         >
           <span>Jump to…</span>
@@ -161,7 +189,7 @@ export function AppBar() {
         <button
           type="button"
           onClick={openPalette}
-          className="flex min-h-9 shrink-0 items-center justify-center rounded-lg px-2 text-muted transition-colors hover:bg-subtle hover:text-foreground active:bg-subtle md:hidden"
+          className="flex min-h-9 shrink-0 items-center justify-center rounded-lg px-2 text-muted transition-colors hover:bg-subtle hover:text-foreground active:bg-subtle lg:hidden"
           aria-label="Open command palette"
         >
           <Search className="size-5" aria-hidden />
@@ -187,11 +215,11 @@ export function AppBar() {
       {menuOpen && (
         <>
           <div
-            className="fixed inset-0 top-14 z-10 bg-foreground/20 sm:hidden"
+            className="fixed inset-0 top-14 z-10 bg-foreground/20 md:hidden"
             onClick={() => setMenuOpen(false)}
             aria-hidden
           />
-          <nav className="anim-menu absolute inset-x-0 top-14 z-20 border-b border-border bg-surface shadow-lg sm:hidden">
+          <nav className="anim-menu absolute inset-x-0 top-14 z-20 border-b border-border bg-surface shadow-lg md:hidden">
             <div className="flex flex-col p-2">
               {NAV_LINKS.map((link) => (
                 <Link

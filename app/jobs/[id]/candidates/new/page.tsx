@@ -7,6 +7,7 @@ import { DuplicateWarning } from "@/components/DuplicateWarning";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { PageHeader } from "@/components/PageHeader";
 import { Segmented } from "@/components/Segmented";
+import { CANDIDATE_PREFILL_KEY } from "@/lib/client";
 import type { DuplicateMatch } from "@/lib/duplicates";
 import {
   CANDIDATE_SOURCES,
@@ -16,12 +17,30 @@ import {
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
+// Quick capture hands off a suspected candidate profile via sessionStorage
+// (the text is often too long/sensitive for a URL query param). Read once,
+// synchronously, before first render — not in an effect — so there's no
+// flash of empty fields and no cascading setState-in-effect render.
+function readCandidatePrefill(): { name: string; text: string } {
+  if (typeof window === "undefined") return { name: "", text: "" };
+  const raw = sessionStorage.getItem(CANDIDATE_PREFILL_KEY);
+  if (!raw) return { name: "", text: "" };
+  sessionStorage.removeItem(CANDIDATE_PREFILL_KEY);
+  try {
+    const prefill = JSON.parse(raw) as { name?: string; text?: string };
+    return { name: prefill.name ?? "", text: prefill.text ?? "" };
+  } catch {
+    return { name: "", text: "" };
+  }
+}
+
 export default function NewCandidatePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [prefill] = useState(readCandidatePrefill);
+  const [name, setName] = useState(prefill.name);
   const [source, setSource] = useState<CandidateSource>("linkedin");
-  const [resumeText, setResumeText] = useState("");
+  const [resumeText, setResumeText] = useState(prefill.text);
   const [file, setFile] = useState<File | null>(null);
   const [stage, setStage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

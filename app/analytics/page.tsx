@@ -6,6 +6,7 @@ import { Card } from "@/components/Card";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { FunnelChart } from "@/components/FunnelChart";
 import { PageHeader } from "@/components/PageHeader";
+import { Select } from "@/components/Select";
 import { Spinner } from "@/components/Spinner";
 import { api, postJson } from "@/lib/client";
 import { bySourceBreakdown, buildFunnel } from "@/lib/analytics";
@@ -93,10 +94,11 @@ export default function AnalyticsPage() {
       <ErrorBanner message={error} />
 
       <div className="mb-4">
-        <select
+        <Select
           value={jobFilter}
           onChange={(e) => setJobFilter(e.target.value)}
-          className="min-h-11 rounded-xl border border-border bg-surface px-4 py-2 text-base text-foreground focus:border-accent focus:outline-none"
+          wrapperClassName="w-fit"
+          className="min-h-11 rounded-xl border border-border bg-surface py-2 pl-4 text-base text-foreground focus:border-accent focus:outline-none"
         >
           <option value="">All roles</option>
           {jobs.map((j) => (
@@ -104,7 +106,7 @@ export default function AnalyticsPage() {
               {j.title}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div className="flex flex-col gap-4">

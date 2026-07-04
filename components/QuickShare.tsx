@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { CopyButton } from "@/components/CopyButton";
+import { Select } from "@/components/Select";
 import { VoiceInput } from "@/components/VoiceInput";
 import { postJson } from "@/lib/client";
 import type { EmailDraft, EmailTemplate } from "@/lib/schemas";
@@ -56,17 +57,18 @@ export function QuickShare({
         Speak what you want to say — draft it, then send via WhatsApp, SMS, or
         copy for email.
       </p>
-      <select
+      <Select
         value={templateId}
         onChange={(e) => setTemplateId(e.target.value)}
-        className="mb-3 min-h-11 w-full rounded-xl border border-border bg-surface px-4 py-2 text-base text-foreground focus:border-accent focus:outline-none"
+        wrapperClassName="mb-3"
+        className="min-h-11 rounded-xl border border-border bg-surface pl-4 text-base text-foreground focus:border-accent focus:outline-none"
       >
         {templates.map((t) => (
           <option key={t.id} value={t.id}>
             {t.name}
           </option>
         ))}
-      </select>
+      </Select>
       <VoiceInput
         mode="raw"
         onResult={setTranscript}

@@ -15,7 +15,7 @@ export function PageHeader({
   gradient?: boolean;
 }) {
   return (
-    <header className="mb-6">
+    <header className="mb-4">
       {backHref && (
         <Link
           href={backHref}
@@ -28,7 +28,7 @@ export function PageHeader({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1
-            className={`text-2xl font-bold tracking-tight sm:text-3xl ${
+            className={`text-xl font-bold tracking-tight sm:text-2xl ${
               gradient
                 ? "bg-gradient-to-r from-foreground to-accent bg-clip-text text-transparent"
                 : "text-foreground"
@@ -37,7 +37,7 @@ export function PageHeader({
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-1 text-sm text-muted">{subtitle}</p>
+            <p className="mt-0.5 text-sm text-muted">{subtitle}</p>
           )}
         </div>
         {action && <div className="flex shrink-0 gap-2">{action}</div>}

@@ -253,3 +253,59 @@ export interface DbSizeInfo {
   cap_mb: number;
   pct: number;
 }
+
+// Quick capture: anything dictated or pasted through the global capture
+// button gets routed to one of these actions.
+export const captureActionSchema = z.object({
+  action: z.enum(["todo", "note", "draft_reply", "add_candidate"]),
+  text: z.string(),
+  candidate_id: z.string().nullable(),
+  job_id: z.string().nullable(),
+  draft_reply: z.string().nullable(),
+});
+export type CaptureAction = z.infer<typeof captureActionSchema>;
+
+export interface Capture {
+  id: string;
+  created_at: string;
+  kind: "todo" | "note";
+  text: string;
+  candidate_id: string | null;
+  job_id: string | null;
+  candidate_name: string | null;
+  job_title: string | null;
+  done: boolean;
+}
+
+// Generic AI tools (/ai-tools) — not tied to a candidate or job record.
+export const TONES = ["formal", "friendly", "concise", "assertive"] as const;
+export type Tone = (typeof TONES)[number];
+
+export const composedEmailSchema = z.object({
+  subject: z.string(),
+  body: z.string(),
+});
+export type ComposedEmail = z.infer<typeof composedEmailSchema>;
+
+export const rewrittenTextSchema = z.object({
+  rewritten: z.string(),
+});
+export type RewrittenText = z.infer<typeof rewrittenTextSchema>;
+
+export const quickSummarySchema = z.object({
+  summary: z.string(),
+  key_points: z.array(z.string()),
+});
+export type QuickSummary = z.infer<typeof quickSummarySchema>;
+
+export const termExplanationSchema = z.object({
+  explanation: z.string(),
+  why_it_matters_for_hiring: z.string(),
+});
+export type TermExplanation = z.infer<typeof termExplanationSchema>;
+
+export const jobPostSchema = z.object({
+  title_suggestion: z.string(),
+  job_post: z.string(),
+});
+export type JobPost = z.infer<typeof jobPostSchema>;

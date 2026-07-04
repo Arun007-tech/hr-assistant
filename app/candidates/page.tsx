@@ -8,6 +8,7 @@ import { Button } from "@/components/Button";
 import { ErrorBanner } from "@/components/ErrorBanner";
 import { PageHeader } from "@/components/PageHeader";
 import { Segmented } from "@/components/Segmented";
+import { Select } from "@/components/Select";
 import { Spinner } from "@/components/Spinner";
 import { StatusPill } from "@/components/StatusPill";
 import { api } from "@/lib/client";
@@ -173,10 +174,11 @@ export default function CandidatesPage() {
             placeholder="Search by name…"
             className="min-h-11 min-w-0 flex-1 rounded-xl border border-border px-4 py-2 text-base text-foreground focus:border-accent focus:outline-none"
           />
-          <select
+          <Select
             value={jobFilter}
             onChange={(e) => setJobFilter(e.target.value)}
-            className="min-h-11 w-full min-w-0 shrink-0 rounded-xl border border-border bg-surface px-4 py-2 text-base text-foreground focus:border-accent focus:outline-none sm:w-44"
+            wrapperClassName="min-w-0 shrink-0 sm:w-44"
+            className="min-h-11 rounded-xl border border-border bg-surface py-2 pl-4 text-base text-foreground focus:border-accent focus:outline-none"
           >
             <option value="">All roles</option>
             {jobs?.map((j) => (
@@ -184,11 +186,12 @@ export default function CandidatesPage() {
                 {j.title}
               </option>
             ))}
-          </select>
-          <select
+          </Select>
+          <Select
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value)}
-            className="min-h-11 w-full min-w-0 shrink-0 rounded-xl border border-border bg-surface px-4 py-2 text-base text-foreground capitalize focus:border-accent focus:outline-none sm:w-40"
+            wrapperClassName="min-w-0 shrink-0 sm:w-40"
+            className="min-h-11 rounded-xl border border-border bg-surface py-2 pl-4 text-base text-foreground capitalize focus:border-accent focus:outline-none"
           >
             <option value="">All sources</option>
             {CANDIDATE_SOURCES.map((s) => (
@@ -196,7 +199,7 @@ export default function CandidatesPage() {
                 {s}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 

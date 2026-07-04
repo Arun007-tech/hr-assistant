@@ -1,5 +1,9 @@
 "use client";
 
+// sessionStorage key QuickCapture uses to hand a suspected candidate profile
+// off to the "add candidate" page (which needs a job picked first).
+export const CANDIDATE_PREFILL_KEY = "hr-assistant:candidate-prefill";
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {

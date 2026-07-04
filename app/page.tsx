@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { ErrorBanner } from "@/components/ErrorBanner";
-import { NeedsAttention } from "@/components/NeedsAttention";
 import { PageHeader } from "@/components/PageHeader";
 import { SkeletonCard } from "@/components/Skeleton";
+import { TodayBrief } from "@/components/TodayBrief";
 import { api } from "@/lib/client";
 import { formatDate } from "@/lib/format";
 import type { JobListItem } from "@/lib/schemas";
@@ -35,7 +35,7 @@ export default function DashboardPage() {
       <div className="relative">
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-10 -left-10 -z-10 size-56 rounded-full bg-accent/15 blur-3xl"
+          className="accent-glow pointer-events-none absolute -top-10 -left-10 -z-10 size-56 rounded-full bg-accent/15 blur-3xl"
         />
         <PageHeader
           title="Roles"
@@ -49,20 +49,20 @@ export default function DashboardPage() {
         />
       </div>
       <ErrorBanner message={error} />
-      <NeedsAttention />
+      <TodayBrief />
       {!jobs && !error && (
-        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[0, 1, 2].map((i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
       )}
       {jobs && jobs.length === 0 && (
-        <div className="anim-rise rounded-2xl border border-dashed border-border bg-surface p-10 text-center sm:p-16">
+        <div className="anim-rise rounded-2xl border border-dashed border-border bg-surface p-8 text-center sm:p-12">
           <p className="mb-1 text-lg font-semibold text-foreground">
             No roles yet
           </p>
-          <p className="mx-auto mb-5 max-w-sm text-sm text-muted">
+          <p className="mx-auto mb-4 max-w-sm text-sm text-muted">
             Paste a job description to get an ideal candidate profile and
             ready-to-use search strings.
           </p>
@@ -71,15 +71,15 @@ export default function DashboardPage() {
           </Button>
         </div>
       )}
-      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {jobs?.map((job, i) => (
           <Link
             key={job.id}
             href={`/jobs/${job.id}`}
-            className="group anim-rise rounded-2xl border border-border bg-surface p-5 card-shadow transition-all hover:-translate-y-0.5 hover:border-border hover:shadow-md active:translate-y-0 active:scale-[0.98] active:bg-subtle"
+            className="group anim-rise rounded-2xl border border-border bg-surface p-4 card-shadow transition-all hover:-translate-y-0.5 hover:border-border hover:shadow-md active:translate-y-0 active:scale-[0.98] active:bg-subtle"
             style={{ "--stagger": i } as React.CSSProperties}
           >
-            <div className="mb-3 flex items-start justify-between gap-3">
+            <div className="mb-2.5 flex items-start justify-between gap-3">
               <h2 className="min-w-0 truncate text-lg font-semibold tracking-tight text-foreground group-hover:text-accent">
                 {job.title}
               </h2>
