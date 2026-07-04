@@ -12,14 +12,20 @@ export async function GET(request: Request) {
     const minScore = url.searchParams.get("min_score");
     const maxScore = url.searchParams.get("max_score");
     const q = url.searchParams.get("q");
+    const poolOnly = url.searchParams.get("talent_pool") === "true";
+
+    // Pool queries also need the analysis + resume text for skill matching
+    // and re-adding to another role; the normal list stays lightweight.
+    const fields = poolOnly
+      ? "id, name, source, score, status, created_at, job_id, notes, phone, talent_pool, updated_at, resume_text, ai_analysis, jobs(title)"
+      : "id, name, source, score, status, created_at, job_id, notes, phone, talent_pool, updated_at, jobs(title)";
 
     let query = db()
       .from("candidates")
-      .select(
-        "id, name, source, score, status, created_at, job_id, notes, phone, updated_at, jobs(title)"
-      )
+      .select(fields)
       .order("created_at", { ascending: false });
 
+    if (poolOnly) query = query.eq("talent_pool", true);
     if (jobId) query = query.eq("job_id", jobId);
     if (status && (CANDIDATE_STATUSES as readonly string[]).includes(status)) {
       query = query.eq("status", status);
@@ -34,10 +40,15 @@ export async function GET(request: Request) {
     const { data, error } = await query;
     if (error) throw new Error(error.message);
 
-    const candidates = (data ?? []).map(({ jobs, ...rest }) => {
-      const job = Array.isArray(jobs) ? jobs[0] : jobs;
-      return { ...rest, job_title: job?.title ?? "" };
-    });
+    type Row = Record<string, unknown> & {
+      jobs: { title: string } | { title: string }[] | null;
+    };
+    const candidates = ((data ?? []) as unknown as Row[]).map(
+      ({ jobs, ...rest }) => {
+        const job = Array.isArray(jobs) ? jobs[0] : jobs;
+        return { ...rest, job_title: job?.title ?? "" };
+      }
+    );
 
     return NextResponse.json(candidates);
   } catch (err) {

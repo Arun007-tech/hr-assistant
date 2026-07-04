@@ -20,8 +20,8 @@ export function Segmented<T extends string>({
           onClick={() => onChange(option)}
           className={`min-h-11 cursor-pointer rounded-full px-4 text-sm font-medium capitalize transition-colors ${
             value === option
-              ? "bg-foreground text-white"
-              : "border border-stone-300 bg-surface text-stone-600 hover:bg-stone-50 active:bg-stone-100"
+              ? "bg-foreground text-background"
+              : "border border-border bg-surface text-muted hover:bg-subtle active:bg-subtle"
           }`}
         >
           {labels?.[option] ?? option}

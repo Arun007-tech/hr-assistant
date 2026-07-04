@@ -12,7 +12,9 @@ import { ScoreRing } from "@/components/ScoreRing";
 import { Segmented } from "@/components/Segmented";
 import { Spinner } from "@/components/Spinner";
 import { StatusPill } from "@/components/StatusPill";
+import { TalentPoolSuggestions } from "@/components/TalentPoolSuggestions";
 import { api, patchJson, postJson } from "@/lib/client";
+import { downloadCsv } from "@/lib/csv";
 import { formatDate } from "@/lib/format";
 import {
   CANDIDATE_STATUSES,
@@ -29,7 +31,7 @@ type Sort = (typeof SORTS)[number];
 
 const chipTones = {
   emerald: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  stone: "border-stone-200 bg-stone-50 text-stone-600",
+  stone: "border-border bg-subtle text-muted",
   accent: "border-accent-soft bg-accent-soft text-accent-ink",
 };
 
@@ -59,11 +61,11 @@ function SearchStrings({ label, strings }: { label: string; strings: string[] })
   if (strings.length === 0) return null;
   return (
     <div className="mb-4 last:mb-0">
-      <h3 className="mb-2 text-sm font-semibold text-stone-700">{label}</h3>
+      <h3 className="mb-2 text-sm font-semibold text-foreground/80">{label}</h3>
       <div className="flex flex-col gap-2">
         {strings.map((s, i) => (
           <div key={i} className="flex items-center gap-2">
-            <code className="min-w-0 flex-1 rounded-lg bg-stone-50 p-3 font-mono text-sm break-words whitespace-pre-wrap text-stone-800">
+            <code className="min-w-0 flex-1 rounded-lg bg-subtle p-3 font-mono text-sm break-words whitespace-pre-wrap text-foreground">
               {s}
             </code>
             <CopyButton text={s} />
@@ -203,7 +205,7 @@ export default function JobPage() {
         <PageHeader title="Role" backHref="/" />
         <ErrorBanner message={error} />
         {!error && (
-          <div className="flex justify-center py-16 text-stone-400">
+          <div className="flex justify-center py-16 text-faint">
             <Spinner />
           </div>
         )}
@@ -262,27 +264,27 @@ export default function JobPage() {
           <Card title="Edit role">
             <div className="flex flex-col gap-4">
               <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-stone-700">
+                <span className="text-sm font-medium text-foreground/80">
                   Role title
                 </span>
                 <input
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
+                  className="rounded-xl border border-border px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-stone-700">
+                <span className="text-sm font-medium text-foreground/80">
                   Job description
                 </span>
                 <textarea
                   value={editJdText}
                   onChange={(e) => setEditJdText(e.target.value)}
                   rows={12}
-                  className="rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
+                  className="rounded-xl border border-border px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
                 />
               </label>
-              <p className="text-xs text-stone-400">
+              <p className="text-xs text-faint">
                 Editing the JD does not automatically re-run analysis — use
                 Regenerate below when you&apos;re ready.
               </p>
@@ -291,7 +293,7 @@ export default function JobPage() {
         )}
         {!profile && !editing && (
           <Card title="AI analysis">
-            <p className="mb-4 text-sm text-stone-500">
+            <p className="mb-4 text-sm text-muted">
               Generate the ideal candidate profile and Boolean search strings
               for this JD.
             </p>
@@ -317,12 +319,12 @@ export default function JobPage() {
                   </Button>
                 }
               >
-                <p className="mb-4 text-sm leading-relaxed text-stone-600">
+                <p className="mb-4 text-sm leading-relaxed text-muted">
                   {profile.summary}
                 </p>
                 <div className="flex flex-col gap-3 text-sm">
                   <div>
-                    <p className="mb-1.5 font-medium text-stone-700">
+                    <p className="mb-1.5 font-medium text-foreground/80">
                       Must have
                     </p>
                     <div className="flex flex-wrap gap-1.5">
@@ -335,7 +337,7 @@ export default function JobPage() {
                   </div>
                   {profile.nice_to_have_skills.length > 0 && (
                     <div>
-                      <p className="mb-1.5 font-medium text-stone-700">
+                      <p className="mb-1.5 font-medium text-foreground/80">
                         Nice to have
                       </p>
                       <div className="flex flex-wrap gap-1.5">
@@ -348,15 +350,15 @@ export default function JobPage() {
                     </div>
                   )}
                   <p>
-                    <span className="font-medium text-stone-700">
+                    <span className="font-medium text-foreground/80">
                       Experience:{" "}
                     </span>
-                    <span className="text-stone-600">
+                    <span className="text-muted">
                       {profile.experience_range}
                     </span>
                   </p>
                   <div>
-                    <p className="mb-1.5 font-medium text-stone-700">
+                    <p className="mb-1.5 font-medium text-foreground/80">
                       Titles to search for
                     </p>
                     <div className="flex flex-wrap gap-1.5">
@@ -369,10 +371,10 @@ export default function JobPage() {
                   </div>
                   {profile.red_flags.length > 0 && (
                     <div>
-                      <p className="mb-1.5 font-medium text-stone-700">
+                      <p className="mb-1.5 font-medium text-foreground/80">
                         Red flags
                       </p>
-                      <ul className="flex flex-col gap-1 text-stone-600">
+                      <ul className="flex flex-col gap-1 text-muted">
                         {profile.red_flags.map((flag) => (
                           <li key={flag}>⚠️ {flag}</li>
                         ))}
@@ -390,7 +392,7 @@ export default function JobPage() {
                 {searches.apna_keywords.length > 0 && (
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <h3 className="text-sm font-semibold text-stone-700">
+                      <h3 className="text-sm font-semibold text-foreground/80">
                         Apna keywords
                       </h3>
                       <CopyButton text={searches.apna_keywords.join(", ")} />
@@ -409,10 +411,35 @@ export default function JobPage() {
           </div>
         )}
 
+        {profile && (
+          <TalentPoolSuggestions jobId={id} idealProfile={profile} />
+        )}
+
         <Card
           title="Candidates"
           action={
             <div className="flex gap-2">
+              {candidates.length > 0 && (
+                <Button
+                  variant="secondary"
+                  onClick={() =>
+                    downloadCsv(
+                      `${job.title.replace(/[^\w]+/g, "-")}-candidates.csv`,
+                      ["Name", "Source", "Status", "Score", "Added"],
+                      candidates.map((c) => [
+                        c.name,
+                        c.source,
+                        c.status,
+                        c.score,
+                        formatDate(c.created_at),
+                      ])
+                    )
+                  }
+                  className="!min-h-11 !px-4 !text-sm"
+                >
+                  Export CSV
+                </Button>
+              )}
               <Button
                 variant="secondary"
                 onClick={() => router.push(`/jobs/${id}/candidates/bulk`)}
@@ -446,7 +473,7 @@ export default function JobPage() {
             </div>
           )}
           {candidates.length === 0 ? (
-            <p className="py-4 text-center text-sm text-stone-400">
+            <p className="py-4 text-center text-sm text-faint">
               {job.candidates.length === 0
                 ? "No candidates yet — add one you found on LinkedIn, Naukri or Apna."
                 : "No candidates with this status."}
@@ -457,13 +484,13 @@ export default function JobPage() {
                 <Link
                   key={c.id}
                   href={`/jobs/${id}/candidates/${c.id}`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 px-4 py-3.5 transition-colors hover:border-stone-300 hover:bg-stone-50 active:bg-stone-100"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border px-4 py-3.5 transition-colors hover:border-border hover:bg-subtle active:bg-subtle"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium text-foreground">
                       {c.name}
                     </p>
-                    <p className="text-xs text-stone-400">
+                    <p className="text-xs text-faint">
                       <span className="capitalize">{c.source}</span> ·{" "}
                       {formatDate(c.created_at)}
                     </p>
@@ -501,7 +528,7 @@ export default function JobPage() {
         >
           {!jdQuality ? (
             <div className="flex flex-col items-start gap-3">
-              <p className="text-sm text-stone-500">
+              <p className="text-sm text-muted">
                 Check this JD for clarity and exclusionary language, with
                 concrete rewrite suggestions.
               </p>
@@ -513,19 +540,19 @@ export default function JobPage() {
             <>
               <div className="mb-4 flex items-center gap-4">
                 <ScoreRing score={jdQuality.clarity_score} size={72} />
-                <p className="text-sm leading-relaxed text-stone-600">
+                <p className="text-sm leading-relaxed text-muted">
                   {jdQuality.summary}
                 </p>
               </div>
               {jdQuality.issues.length > 0 && (
                 <div className="mb-4 flex flex-col gap-3">
                   {jdQuality.issues.map((issue, i) => (
-                    <div key={i} className="rounded-xl bg-stone-50 p-3 text-sm">
-                      <span className="mb-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800 capitalize">
+                    <div key={i} className="rounded-xl bg-subtle p-3 text-sm">
+                      <span className="mb-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800 capitalize dark:bg-amber-500/15 dark:text-amber-400">
                         {issue.type}
                       </span>
-                      <p className="text-stone-700">&ldquo;{issue.text}&rdquo;</p>
-                      <p className="mt-1 text-stone-500">
+                      <p className="text-foreground/80">&ldquo;{issue.text}&rdquo;</p>
+                      <p className="mt-1 text-muted">
                         → {issue.suggestion}
                       </p>
                     </div>
@@ -535,12 +562,12 @@ export default function JobPage() {
               {jdQuality.rewritten_jd && (
                 <div>
                   <div className="mb-2 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-stone-700">
+                    <h3 className="text-sm font-semibold text-foreground/80">
                       Suggested rewrite
                     </h3>
                     <CopyButton text={jdQuality.rewritten_jd} />
                   </div>
-                  <pre className="max-h-64 overflow-y-auto rounded-lg bg-stone-50 p-3 font-sans text-sm whitespace-pre-wrap text-stone-700">
+                  <pre className="max-h-64 overflow-y-auto rounded-lg bg-subtle p-3 font-sans text-sm whitespace-pre-wrap text-foreground/80">
                     {jdQuality.rewritten_jd}
                   </pre>
                 </div>
@@ -566,7 +593,7 @@ export default function JobPage() {
         >
           {!interviewPlan ? (
             <div className="flex flex-col items-start gap-3">
-              <p className="text-sm text-stone-500">
+              <p className="text-sm text-muted">
                 Generate a structured multi-round interview loop tailored to
                 this role.
               </p>
@@ -576,21 +603,21 @@ export default function JobPage() {
             </div>
           ) : (
             <>
-              <p className="mb-4 text-sm text-stone-500">
+              <p className="mb-4 text-sm text-muted">
                 Estimated timeline: {interviewPlan.total_estimated_days}
               </p>
               <ol className="flex flex-col gap-4">
                 {interviewPlan.rounds.map((round, i) => (
-                  <li key={i} className="rounded-xl bg-stone-50 p-4">
+                  <li key={i} className="rounded-xl bg-subtle p-4">
                     <div className="mb-1.5 flex items-baseline justify-between gap-2">
                       <p className="font-semibold text-foreground">
                         {i + 1}. {round.name}
                       </p>
-                      <span className="shrink-0 text-xs text-stone-500">
+                      <span className="shrink-0 text-xs text-muted">
                         {round.duration_mins} min
                       </span>
                     </div>
-                    <p className="mb-2 text-sm text-stone-600">
+                    <p className="mb-2 text-sm text-muted">
                       {round.format}
                     </p>
                     <div className="mb-2 flex flex-wrap gap-1.5">
@@ -600,7 +627,7 @@ export default function JobPage() {
                         </Chip>
                       ))}
                     </div>
-                    <ul className="flex flex-col gap-1 text-sm text-stone-600">
+                    <ul className="flex flex-col gap-1 text-sm text-muted">
                       {round.sample_questions.map((q) => (
                         <li key={q}>• {q}</li>
                       ))}
@@ -613,11 +640,11 @@ export default function JobPage() {
         </Card>
 
         {!editing && (
-          <details className="rounded-2xl border border-stone-200 bg-surface shadow-[0_1px_2px_rgba(33,28,22,0.04)]">
+          <details className="rounded-2xl border border-border bg-surface card-shadow">
             <summary className="min-h-12 cursor-pointer px-5 py-3.5 text-base font-semibold text-foreground sm:px-6">
               Job description
             </summary>
-            <pre className="border-t border-stone-100 px-5 py-4 font-sans text-sm whitespace-pre-wrap text-stone-600 sm:px-6">
+            <pre className="border-t border-border px-5 py-4 font-sans text-sm whitespace-pre-wrap text-muted sm:px-6">
               {job.jd_text}
             </pre>
           </details>

@@ -538,3 +538,98 @@ ${JSON.stringify(snapshot, null, 2)}
 
 QUESTION: ${question}`;
 }
+
+export const offerHelperResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    summary: { type: Type.STRING },
+    talking_points: stringArray,
+    risks: stringArray,
+    counter_script: { type: Type.STRING },
+    suggested_close: { type: Type.STRING },
+  },
+  required: ["summary", "talking_points", "risks", "counter_script", "suggested_close"],
+};
+
+export function offerHelperPrompt(input: {
+  candidateName: string;
+  expectedCtc: string;
+  offeredBand: string;
+  context?: string;
+}): string {
+  return `You are helping a recruiter prepare for a compensation negotiation
+with ${input.candidateName}.
+
+Candidate's expected CTC: ${input.expectedCtc}
+Role's offered band: ${input.offeredBand}
+${input.context ? `Additional context: ${input.context}\n` : ""}
+Produce:
+- summary: 2-3 sentences on the gap (if any) and overall negotiation posture
+- talking_points: 3-5 concrete points she can raise to justify the offer
+  (growth path, non-cash benefits, market context, role scope) — practical,
+  not generic filler
+- risks: 2-4 things that could go wrong in this negotiation (walk-away risk,
+  competing offers, internal equity issues) — name them plainly
+- counter_script: a short, natural spoken script she could literally say if
+  the candidate pushes back on the number
+- suggested_close: one or two sentences on how to end the call productively
+  regardless of outcome
+
+Keep it grounded in the numbers given — do not invent market data you don't have.`;
+}
+
+export const referenceQuestionsResponseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    questions: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          question: { type: Type.STRING },
+          focus: {
+            type: Type.STRING,
+            enum: ["claims", "performance", "collaboration", "integrity", "logistics"],
+          },
+          listen_for: { type: Type.STRING },
+        },
+        required: ["question", "focus", "listen_for"],
+      },
+    },
+  },
+  required: ["questions"],
+};
+
+export function referenceQuestionsPrompt(input: {
+  jdText: string;
+  candidateName: string;
+  analysis: CandidateAnalysis | null;
+}): string {
+  const claimsBlock = input.analysis
+    ? `\nCLAIMS TO VERIFY (from the candidate's own resume/interview):\n${JSON.stringify(
+        { summary: input.analysis.summary, skills: input.analysis.skills_match.map((s) => s.skill) },
+        null,
+        2
+      )}\n`
+    : "";
+  return `Create reference-check questions for a former manager/colleague of
+${input.candidateName}, who is being considered for this role. These are
+different from screening questions — they verify what the candidate already
+claimed, from a third party's perspective.
+
+Produce 8-10 questions covering:
+- claims: verify specific things the candidate said about their role/impact
+- performance: how they actually performed, strengths and weaknesses
+- collaboration: how they worked with others, team dynamics
+- integrity: reliability, honesty, whether the reference would rehire them
+- logistics: reason for leaving, rehire eligibility, notice period behavior
+
+For each, set focus to one of claims|performance|collaboration|integrity|logistics
+and give listen_for: one line on what a good vs concerning answer sounds like.
+
+JOB DESCRIPTION:
+"""
+${input.jdText}
+"""
+${claimsBlock}`;
+}

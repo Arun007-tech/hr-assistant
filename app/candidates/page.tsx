@@ -1,5 +1,6 @@
 "use client";
 
+import { Star } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -10,6 +11,7 @@ import { Segmented } from "@/components/Segmented";
 import { Spinner } from "@/components/Spinner";
 import { StatusPill } from "@/components/StatusPill";
 import { api } from "@/lib/client";
+import { downloadCsv } from "@/lib/csv";
 import { formatDate } from "@/lib/format";
 import {
   CANDIDATE_SOURCES,
@@ -47,6 +49,7 @@ export default function CandidatesPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [jobFilter, setJobFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
+  const [poolOnly, setPoolOnly] = useState(false);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounced(search, 900);
 
@@ -63,6 +66,7 @@ export default function CandidatesPage() {
     if (statusFilter !== "all") params.set("status", statusFilter);
     if (jobFilter) params.set("job_id", jobFilter);
     if (sourceFilter) params.set("source", sourceFilter);
+    if (poolOnly) params.set("talent_pool", "true");
     if (debouncedSearch.trim()) params.set("q", debouncedSearch.trim());
 
     api<CandidateWithJob[]>(`/api/candidates?${params.toString()}`)
@@ -74,7 +78,7 @@ export default function CandidatesPage() {
         });
       })
       .catch((err) => setError(err.message));
-  }, [statusFilter, jobFilter, sourceFilter, debouncedSearch]);
+  }, [statusFilter, jobFilter, sourceFilter, poolOnly, debouncedSearch]);
 
   const selectedJobId = useMemo(() => {
     if (selected.size === 0 || !candidates) return null;
@@ -108,27 +112,71 @@ export default function CandidatesPage() {
     <div className="mx-auto max-w-5xl pb-20">
       <PageHeader
         title="Candidates"
+        gradient
         subtitle="Across all roles — filter, search, compare"
+        action={
+          candidates && candidates.length > 0 ? (
+            <Button
+              variant="secondary"
+              onClick={() =>
+                downloadCsv(
+                  "candidates.csv",
+                  ["Name", "Role", "Source", "Status", "Score", "Phone", "Added"],
+                  candidates.map((c) => [
+                    c.name,
+                    c.job_title,
+                    c.source,
+                    c.status,
+                    c.score,
+                    c.phone,
+                    formatDate(c.created_at),
+                  ])
+                )
+              }
+              className="!min-h-11 !px-4 !text-sm"
+            >
+              Export CSV
+            </Button>
+          ) : undefined
+        }
       />
       <ErrorBanner message={error} />
 
-      <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-stone-200 bg-surface p-4 shadow-[0_1px_2px_rgba(33,28,22,0.04)] sm:p-5">
-        <Segmented
-          options={STATUS_FILTERS}
-          value={statusFilter}
-          onChange={setStatusFilter}
-        />
+      <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 card-shadow sm:p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <Segmented
+            options={STATUS_FILTERS}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
+          <button
+            type="button"
+            onClick={() => setPoolOnly((v) => !v)}
+            className={`flex min-h-11 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors ${
+              poolOnly
+                ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400"
+                : "border-border bg-surface text-muted hover:bg-subtle active:bg-subtle"
+            }`}
+          >
+            <Star
+              className="size-4"
+              fill={poolOnly ? "currentColor" : "none"}
+              aria-hidden
+            />
+            Talent pool
+          </button>
+        </div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name…"
-            className="min-h-11 flex-1 rounded-xl border border-stone-300 px-4 py-2 text-base text-foreground focus:border-accent focus:outline-none"
+            className="min-h-11 min-w-0 flex-1 rounded-xl border border-border px-4 py-2 text-base text-foreground focus:border-accent focus:outline-none"
           />
           <select
             value={jobFilter}
             onChange={(e) => setJobFilter(e.target.value)}
-            className="min-h-11 rounded-xl border border-stone-300 bg-surface px-4 py-2 text-base text-foreground focus:border-accent focus:outline-none"
+            className="min-h-11 w-full min-w-0 shrink-0 rounded-xl border border-border bg-surface px-4 py-2 text-base text-foreground focus:border-accent focus:outline-none sm:w-44"
           >
             <option value="">All roles</option>
             {jobs?.map((j) => (
@@ -140,7 +188,7 @@ export default function CandidatesPage() {
           <select
             value={sourceFilter}
             onChange={(e) => setSourceFilter(e.target.value)}
-            className="min-h-11 rounded-xl border border-stone-300 bg-surface px-4 py-2 text-base text-foreground capitalize focus:border-accent focus:outline-none"
+            className="min-h-11 w-full min-w-0 shrink-0 rounded-xl border border-border bg-surface px-4 py-2 text-base text-foreground capitalize focus:border-accent focus:outline-none sm:w-40"
           >
             <option value="">All sources</option>
             {CANDIDATE_SOURCES.map((s) => (
@@ -153,14 +201,14 @@ export default function CandidatesPage() {
       </div>
 
       {!candidates && !error && (
-        <div className="flex justify-center py-16 text-stone-400">
+        <div className="flex justify-center py-16 text-faint">
           <Spinner />
         </div>
       )}
 
       {candidates && candidates.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-stone-300 bg-surface p-10 text-center">
-          <p className="text-sm text-stone-500">
+        <div className="rounded-2xl border border-dashed border-border bg-surface p-10 text-center">
+          <p className="text-sm text-muted">
             No candidates match these filters.
           </p>
         </div>
@@ -176,8 +224,8 @@ export default function CandidatesPage() {
             return (
               <div
                 key={c.id}
-                className={`flex items-center gap-3 rounded-xl border border-stone-200 bg-surface px-4 py-3.5 transition-colors ${
-                  disabled ? "opacity-40" : "hover:border-stone-300"
+                className={`flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3.5 transition-colors ${
+                  disabled ? "opacity-40" : "hover:border-border"
                 }`}
               >
                 <input
@@ -196,7 +244,7 @@ export default function CandidatesPage() {
                     <p className="truncate font-medium text-foreground">
                       {c.name}
                     </p>
-                    <p className="truncate text-xs text-stone-400">
+                    <p className="truncate text-xs text-faint">
                       {c.job_title} · <span className="capitalize">{c.source}</span>{" "}
                       · {formatDate(c.created_at)}
                     </p>
@@ -219,9 +267,9 @@ export default function CandidatesPage() {
       )}
 
       {selected.size >= 2 && (
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-stone-200 bg-surface/95 p-4 backdrop-blur-sm">
+        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/95 p-4 backdrop-blur-sm">
           <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-            <p className="text-sm text-stone-600">
+            <p className="text-sm text-muted">
               {selected.size} candidate{selected.size === 1 ? "" : "s"}{" "}
               selected
             </p>

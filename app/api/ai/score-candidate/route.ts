@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { findExistingMatches } from "@/lib/duplicates-server";
 import { fileToText } from "@/lib/files";
 import { AiError, generateJson } from "@/lib/gemini";
 import { errorResponse, jsonError } from "@/lib/http";
@@ -71,6 +72,21 @@ async function createAndScore(request: Request) {
   const job = await fetchJob(jobId);
   if (!job) return jsonError("Role not found.", 404);
 
+  // Duplicate gate before the AI call is spent: typed name and/or identical
+  // resume text on the same job blocks with 409 unless force=true.
+  const force = String(form.get("force") ?? "") === "true";
+  const preMatches = await findExistingMatches({
+    jobId,
+    name: typedName || undefined,
+    resumeText,
+  });
+  if (!force && preMatches.some((m) => m.same_job)) {
+    return NextResponse.json(
+      { duplicates: preMatches.filter((m) => m.same_job) },
+      { status: 409 }
+    );
+  }
+
   let analysis: CandidateAnalysis | null = null;
   let aiError: string | null = null;
   try {
@@ -81,6 +97,12 @@ async function createAndScore(request: Request) {
   }
 
   const name = typedName || analysis?.candidate_name || "Unnamed candidate";
+  // Cross-job matches (and AI-extracted-name matches) surface as a notice,
+  // not a block — the row is created and she decides what to do.
+  const duplicates =
+    !typedName && name !== "Unnamed candidate"
+      ? await findExistingMatches({ jobId, name })
+      : preMatches.filter((m) => !m.same_job);
 
   const { data: candidate, error } = await db()
     .from("candidates")
@@ -95,7 +117,10 @@ async function createAndScore(request: Request) {
     .select()
     .single();
   if (error) throw new Error(error.message);
-  return NextResponse.json({ candidate, ai_error: aiError }, { status: 201 });
+  return NextResponse.json(
+    { candidate, ai_error: aiError, duplicates },
+    { status: 201 }
+  );
 }
 
 // Re-score an existing candidate (JSON body with candidate_id).

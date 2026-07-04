@@ -146,7 +146,7 @@ export function VoiceInput({
           )}
         </button>
         {!compact && (
-          <span className="text-sm text-stone-400">
+          <span className="text-sm text-faint">
             {state === "recording"
               ? "Recording — tap to stop"
               : state === "processing"
@@ -157,7 +157,7 @@ export function VoiceInput({
       </div>
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
       {hint && !compact && state === "idle" && (
-        <p className="mt-1 text-xs text-stone-400">{hint}</p>
+        <p className="mt-1 text-xs text-faint">{hint}</p>
       )}
     </div>
   );

@@ -49,7 +49,7 @@ export function CommandPalette({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg overflow-hidden rounded-2xl border border-stone-200 bg-surface shadow-xl"
+        className="w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-surface shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <input
@@ -61,14 +61,14 @@ export function CommandPalette({
           }}
           onKeyDown={onKeyDown}
           placeholder="Jump to a role or candidate…"
-          className="w-full border-b border-stone-200 px-5 py-4 text-base text-foreground focus:outline-none"
+          className="w-full border-b border-border px-5 py-4 text-base text-foreground focus:outline-none"
         />
         <div className="max-h-80 overflow-y-auto p-2">
           {!index && (
-            <p className="px-3 py-4 text-sm text-stone-400">Loading…</p>
+            <p className="px-3 py-4 text-sm text-faint">Loading…</p>
           )}
           {index && results.length === 0 && (
-            <p className="px-3 py-4 text-sm text-stone-400">No matches.</p>
+            <p className="px-3 py-4 text-sm text-faint">No matches.</p>
           )}
           {results.map((item, i) => (
             <button
@@ -83,7 +83,7 @@ export function CommandPalette({
               <span className="min-w-0 truncate text-sm font-medium text-foreground">
                 {item.label}
               </span>
-              <span className="shrink-0 text-xs text-stone-400">
+              <span className="shrink-0 text-xs text-faint">
                 {item.sublabel}
               </span>
             </button>

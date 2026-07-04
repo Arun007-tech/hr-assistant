@@ -27,7 +27,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
   try {
     const { id } = await ctx.params;
     const body = await request.json().catch(() => null);
-    const updates: Record<string, string> = {};
+    const updates: Record<string, string | boolean> = {};
 
     if (typeof body?.status === "string") {
       if (!(CANDIDATE_STATUSES as readonly string[]).includes(body.status)) {
@@ -49,6 +49,9 @@ export async function PATCH(request: Request, ctx: Ctx) {
       updates.resume_text = body.resume_text.trim();
     }
     if (typeof body?.phone === "string") updates.phone = body.phone.trim();
+    if (typeof body?.talent_pool === "boolean") {
+      updates.talent_pool = body.talent_pool;
+    }
     if (Object.keys(updates).length === 0) {
       return jsonError("Nothing to update.", 400);
     }

@@ -52,14 +52,14 @@ export function QuickShare({
 
   return (
     <Card title="Quick share">
-      <p className="mb-3 text-sm text-stone-500">
+      <p className="mb-3 text-sm text-muted">
         Speak what you want to say — draft it, then send via WhatsApp, SMS, or
         copy for email.
       </p>
       <select
         value={templateId}
         onChange={(e) => setTemplateId(e.target.value)}
-        className="mb-3 min-h-11 w-full rounded-xl border border-stone-300 bg-surface px-4 py-2 text-base text-foreground focus:border-accent focus:outline-none"
+        className="mb-3 min-h-11 w-full rounded-xl border border-border bg-surface px-4 py-2 text-base text-foreground focus:border-accent focus:outline-none"
       >
         {templates.map((t) => (
           <option key={t.id} value={t.id}>
@@ -74,7 +74,7 @@ export function QuickShare({
         hint="Say what you want the message to cover — it's turned into a full draft using your template."
       />
       {transcript && (
-        <p className="mb-3 rounded-lg bg-stone-50 p-3 text-sm text-stone-600 italic">
+        <p className="mb-3 rounded-lg bg-subtle p-3 text-sm text-muted italic">
           &ldquo;{transcript}&rdquo;
         </p>
       )}
@@ -90,11 +90,11 @@ export function QuickShare({
 
       {draft && (
         <div className="mt-4">
-          <div className="mb-3 rounded-lg bg-stone-50 p-3">
-            <p className="mb-1.5 text-sm font-semibold text-stone-700">
+          <div className="mb-3 rounded-lg bg-subtle p-3">
+            <p className="mb-1.5 text-sm font-semibold text-foreground/80">
               {draft.subject}
             </p>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap text-stone-700">
+            <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/80">
               {draft.body}
             </p>
           </div>
@@ -112,21 +112,21 @@ export function QuickShare({
             {phone && (
               <a
                 href={`sms:${phone}?body=${encodeURIComponent(draft.body)}`}
-                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-stone-300 bg-surface px-4 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-surface px-4 text-sm font-medium text-foreground/80 hover:bg-subtle"
               >
                 SMS
               </a>
             )}
             <a
               href={`mailto:?subject=${encodeURIComponent(draft.subject)}&body=${encodeURIComponent(draft.body)}`}
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-stone-300 bg-surface px-4 text-sm font-medium text-stone-700 hover:bg-stone-50"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-surface px-4 text-sm font-medium text-foreground/80 hover:bg-subtle"
             >
               Email
             </a>
             <CopyButton text={messageText} />
           </div>
           {!phone && (
-            <p className="mt-2 text-xs text-stone-400">
+            <p className="mt-2 text-xs text-faint">
               Add a phone number (Edit candidate) to enable WhatsApp/SMS.
             </p>
           )}

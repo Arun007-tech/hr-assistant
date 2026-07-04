@@ -53,18 +53,23 @@ export interface StaleCandidate<T> {
   days_stale: number;
 }
 
+export interface SlaDays {
+  sourced: number;
+  screening: number;
+}
+
 export function findStale<T extends CandidateLike>(
   candidates: T[],
-  days = 7
+  slaDays: SlaDays = { sourced: 7, screening: 7 }
 ): StaleCandidate<T>[] {
-  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  const dayMs = 24 * 60 * 60 * 1000;
   return candidates
-    .filter(
-      (c) =>
-        (c.status === "sourced" || c.status === "screening") &&
-        c.notes.trim() === "" &&
-        +new Date(c.updated_at) < cutoff
-    )
+    .filter((c) => {
+      if (c.status !== "sourced" && c.status !== "screening") return false;
+      if (c.notes.trim() !== "") return false;
+      const cutoff = Date.now() - slaDays[c.status] * dayMs;
+      return +new Date(c.updated_at) < cutoff;
+    })
     .map((candidate) => ({
       candidate,
       days_stale: Math.floor(

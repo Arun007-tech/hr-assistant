@@ -1,10 +1,10 @@
 import type { CandidateStatus } from "@/lib/schemas";
 
 const styles: Record<CandidateStatus, string> = {
-  sourced: "bg-stone-100 text-stone-700",
-  screening: "bg-amber-100 text-amber-800",
-  shortlisted: "bg-emerald-100 text-emerald-800",
-  rejected: "bg-red-100 text-red-700",
+  sourced: "bg-subtle text-foreground/80",
+  screening: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-400",
+  shortlisted: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400",
+  rejected: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
 };
 
 export function StatusPill({ status }: { status: CandidateStatus }) {

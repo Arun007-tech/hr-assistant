@@ -137,8 +137,10 @@ export interface Candidate extends CandidateSummary {
   resume_text: string | null;
   ai_analysis: CandidateAnalysis | null;
   screening_questions: ScreeningQuestions | null;
+  reference_questions: ReferenceQuestions | null;
   notes: string;
   phone: string | null;
+  talent_pool: boolean;
   updated_at: string;
 }
 
@@ -151,7 +153,13 @@ export interface CandidateWithJob extends CandidateSummary {
   job_title: string;
   notes: string;
   phone: string | null;
+  talent_pool: boolean;
   updated_at: string;
+}
+
+export interface PoolCandidate extends CandidateWithJob {
+  resume_text: string | null;
+  ai_analysis: CandidateAnalysis | null;
 }
 
 export interface EmailTemplate {
@@ -168,6 +176,32 @@ export const emailDraftSchema = z.object({
   body: z.string(),
 });
 export type EmailDraft = z.infer<typeof emailDraftSchema>;
+
+export const offerHelperSchema = z.object({
+  summary: z.string(),
+  talking_points: z.array(z.string()),
+  risks: z.array(z.string()),
+  counter_script: z.string(),
+  suggested_close: z.string(),
+});
+export type OfferHelper = z.infer<typeof offerHelperSchema>;
+
+export const referenceQuestionsSchema = z.object({
+  questions: z.array(
+    z.object({
+      question: z.string(),
+      focus: z.enum([
+        "claims",
+        "performance",
+        "collaboration",
+        "integrity",
+        "logistics",
+      ]),
+      listen_for: z.string(),
+    })
+  ),
+});
+export type ReferenceQuestions = z.infer<typeof referenceQuestionsSchema>;
 
 export const assistantAnswerSchema = z.object({
   answer: z.string(),

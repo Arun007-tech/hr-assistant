@@ -67,26 +67,26 @@ export default function EmailTemplatesPage() {
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="Template name (e.g. Candidate outreach)"
-            className="rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
+            className="rounded-xl border border-border px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
           />
           <input
             value={form.subject}
             onChange={(e) => setForm({ ...form, subject: e.target.value })}
             placeholder="Default subject line"
-            className="rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
+            className="rounded-xl border border-border px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
           />
           <input
             value={form.greeting}
             onChange={(e) => setForm({ ...form, greeting: e.target.value })}
             placeholder="Greeting (e.g. Hi {name},)"
-            className="rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
+            className="rounded-xl border border-border px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
           />
           <textarea
             value={form.signature}
             onChange={(e) => setForm({ ...form, signature: e.target.value })}
             placeholder="Signature (name, title, contact)"
             rows={3}
-            className="rounded-xl border border-stone-300 px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
+            className="rounded-xl border border-border px-4 py-3 text-base text-foreground focus:border-accent focus:outline-none"
           />
           <Button type="submit" loading={saving}>
             Save template
@@ -95,22 +95,22 @@ export default function EmailTemplatesPage() {
       </Card>
 
       {!templates && !error && (
-        <div className="flex justify-center py-16 text-stone-400">
+        <div className="flex justify-center py-16 text-faint">
           <Spinner />
         </div>
       )}
       {templates?.map((t) => (
         <Card key={t.id} title={t.name} className="mb-3">
-          <p className="mb-1 text-sm text-stone-600">
+          <p className="mb-1 text-sm text-muted">
             <span className="font-medium">Subject:</span> {t.subject}
           </p>
           {t.greeting && (
-            <p className="mb-1 text-sm text-stone-600">
+            <p className="mb-1 text-sm text-muted">
               <span className="font-medium">Greeting:</span> {t.greeting}
             </p>
           )}
           {t.signature && (
-            <p className="mb-3 text-sm whitespace-pre-wrap text-stone-600">
+            <p className="mb-3 text-sm whitespace-pre-wrap text-muted">
               <span className="font-medium">Signature:</span> {t.signature}
             </p>
           )}

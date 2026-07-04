@@ -59,11 +59,12 @@ export default function UsagePage() {
     <div className="mx-auto max-w-3xl">
       <PageHeader
         title="Usage"
+        gradient
         subtitle="AI call volume and database storage — self-tracked, free-tier friendly"
       />
       <ErrorBanner message={error} />
       {!loaded && !error && (
-        <div className="flex justify-center py-16 text-stone-400">
+        <div className="flex justify-center py-16 text-faint">
           <Spinner />
         </div>
       )}
@@ -74,28 +75,28 @@ export default function UsagePage() {
               <span className="text-3xl font-bold tracking-tight text-foreground">
                 {usage.total_today}
               </span>
-              <span className="text-sm text-stone-500">
+              <span className="text-sm text-muted">
                 ~{GEMINI_RPD_APPROX}/day reference
               </span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-subtle">
               <div
                 className={`h-full rounded-full transition-all ${barColor(dayPct)}`}
                 style={{ width: `${dayPct}%` }}
               />
             </div>
-            <p className="mt-3 text-xs text-stone-400">
+            <p className="mt-3 text-xs text-faint">
               {QUOTA_REFERENCE_NOTE}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <div className="rounded-xl bg-stone-50 p-3">
-                <p className="text-xs text-stone-500">This week</p>
+              <div className="rounded-xl bg-subtle p-3">
+                <p className="text-xs text-muted">This week</p>
                 <p className="text-lg font-semibold text-foreground">
                   {usage.total_this_week}
                 </p>
               </div>
-              <div className="rounded-xl bg-stone-50 p-3">
-                <p className="text-xs text-stone-500">This month</p>
+              <div className="rounded-xl bg-subtle p-3">
+                <p className="text-xs text-muted">This month</p>
                 <p className="text-lg font-semibold text-foreground">
                   {usage.total_this_month}
                 </p>
@@ -108,11 +109,11 @@ export default function UsagePage() {
               <span className="text-3xl font-bold tracking-tight text-foreground">
                 {dbSize.mb < 1 ? "<1" : dbSize.mb.toFixed(1)} MB
               </span>
-              <span className="text-sm text-stone-500">
+              <span className="text-sm text-muted">
                 of {dbSize.cap_mb} MB free tier
               </span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-stone-100">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-subtle">
               <div
                 className={`h-full rounded-full transition-all ${barColor(dbSize.pct)}`}
                 style={{ width: `${Math.max(2, dbSize.pct)}%` }}
@@ -122,11 +123,11 @@ export default function UsagePage() {
 
           <Card title="By feature (last 30 days)">
             {usage.kinds.length === 0 ? (
-              <p className="py-4 text-center text-sm text-stone-400">
+              <p className="py-4 text-center text-sm text-faint">
                 No AI calls yet.
               </p>
             ) : (
-              <div className="flex flex-col divide-y divide-stone-100">
+              <div className="flex flex-col divide-y divide-border">
                 {usage.kinds.map((k) => (
                   <div
                     key={k.kind}
@@ -136,7 +137,7 @@ export default function UsagePage() {
                       <p className="truncate text-sm font-medium text-foreground">
                         {kindLabel(k.kind)}
                       </p>
-                      <p className="text-xs text-stone-400">
+                      <p className="text-xs text-faint">
                         {k.today} today · {k.this_week} this week
                         {k.errors_this_month > 0 && (
                           <span className="text-red-500">

@@ -16,7 +16,7 @@ export default function ComparePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex justify-center py-16 text-stone-400">
+        <div className="flex justify-center py-16 text-faint">
           <Spinner />
         </div>
       }
@@ -74,7 +74,7 @@ function CompareContent() {
     return (
       <div className="mx-auto max-w-3xl">
         <PageHeader title="Compare candidates" backHref="/candidates" />
-        <div className="flex justify-center py-16 text-stone-400">
+        <div className="flex justify-center py-16 text-faint">
           <Spinner />
         </div>
       </div>
@@ -106,7 +106,7 @@ function CompareContent() {
         {candidates.map((c) => (
           <div
             key={c.id}
-            className="rounded-2xl border border-stone-200 bg-surface p-4 shadow-[0_1px_2px_rgba(33,28,22,0.04)]"
+            className="rounded-2xl border border-border bg-surface p-4 card-shadow"
           >
             <p className="mb-3 truncate font-semibold text-foreground">
               {c.name}
@@ -115,11 +115,11 @@ function CompareContent() {
               <ScoreRing score={c.score} size={72} />
             </div>
             {c.ai_analysis ? (
-              <p className="mb-3 text-center text-xs text-stone-500">
+              <p className="mb-3 text-center text-xs text-muted">
                 {c.ai_analysis.verdict}
               </p>
             ) : (
-              <p className="mb-3 text-center text-xs text-stone-400">
+              <p className="mb-3 text-center text-xs text-faint">
                 Not yet analyzed
               </p>
             )}
@@ -128,15 +128,15 @@ function CompareContent() {
       </div>
 
       {allSkills.length > 0 && (
-        <div className="mt-6 overflow-x-auto rounded-2xl border border-stone-200 bg-surface shadow-[0_1px_2px_rgba(33,28,22,0.04)]">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-border bg-surface card-shadow">
           <table className="w-full min-w-[480px] text-sm">
             <thead>
-              <tr className="border-b border-stone-200 text-left">
-                <th className="p-3 font-medium text-stone-500">Skill</th>
+              <tr className="border-b border-border text-left">
+                <th className="p-3 font-medium text-muted">Skill</th>
                 {candidates.map((c) => (
                   <th
                     key={c.id}
-                    className="p-3 text-center font-medium text-stone-500"
+                    className="p-3 text-center font-medium text-muted"
                   >
                     <span className="truncate">{c.name.split(" ")[0]}</span>
                   </th>
@@ -145,8 +145,8 @@ function CompareContent() {
             </thead>
             <tbody>
               {allSkills.map((skill) => (
-                <tr key={skill} className="border-b border-stone-100 last:border-0">
-                  <td className="p-3 text-stone-700">{skill}</td>
+                <tr key={skill} className="border-b border-border last:border-0">
+                  <td className="p-3 text-foreground/80">{skill}</td>
                   {candidates.map((c) => {
                     const match = c.ai_analysis?.skills_match.find(
                       (s) => s.skill === skill
@@ -156,7 +156,7 @@ function CompareContent() {
                         {match ? (
                           <SkillStatusIcon status={match.status} />
                         ) : (
-                          <span className="text-stone-300">—</span>
+                          <span className="text-faint">—</span>
                         )}
                       </td>
                     );
@@ -175,8 +175,8 @@ function CompareContent() {
           <div key={c.id} className="text-sm">
             {c.ai_analysis?.gaps && c.ai_analysis.gaps.length > 0 && (
               <>
-                <p className="mb-1.5 font-medium text-stone-700">Gaps</p>
-                <ul className="flex flex-col gap-1 text-stone-600">
+                <p className="mb-1.5 font-medium text-foreground/80">Gaps</p>
+                <ul className="flex flex-col gap-1 text-muted">
                   {c.ai_analysis.gaps.map((g) => (
                     <li key={g}>• {g}</li>
                   ))}

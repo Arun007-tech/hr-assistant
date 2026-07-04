@@ -18,19 +18,22 @@ export function FunnelChart({ stages }: { stages: FunnelStage[] }) {
   const max = Math.max(1, ...stages.map((s) => s.count));
   return (
     <div className="flex flex-col gap-3">
-      {stages.map((stage) => (
+      {stages.map((stage, i) => (
         <div key={stage.status} className="flex items-center gap-3">
-          <span className="w-24 shrink-0 text-sm font-medium text-stone-600">
+          <span className="w-24 shrink-0 text-sm font-medium text-muted">
             {STAGE_LABEL[stage.status]}
           </span>
-          <div className="h-6 flex-1 overflow-hidden rounded-md bg-stone-100">
+          <div className="h-6 flex-1 overflow-hidden rounded-md bg-subtle">
             <div
-              className="h-full rounded-md transition-all"
-              style={{
-                width: `${(stage.count / max) * 100}%`,
-                backgroundColor: STAGE_COLOR[stage.status],
-                minWidth: stage.count > 0 ? "8px" : "0",
-              }}
+              className="anim-bar h-full rounded-md transition-all"
+              style={
+                {
+                  width: `${(stage.count / max) * 100}%`,
+                  backgroundColor: STAGE_COLOR[stage.status],
+                  minWidth: stage.count > 0 ? "8px" : "0",
+                  "--stagger": i,
+                } as React.CSSProperties
+              }
             />
           </div>
           <span className="w-10 shrink-0 text-right text-sm font-semibold text-foreground">

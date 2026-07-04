@@ -16,7 +16,7 @@ import {
 
 const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
-type RowStatus = "queued" | "scoring" | "done" | "error";
+type RowStatus = "queued" | "scoring" | "done" | "error" | "duplicate";
 
 interface Row {
   file: File;
@@ -25,6 +25,7 @@ interface Row {
   name?: string;
   score?: number | null;
   error?: string;
+  duplicateOf?: string;
 }
 
 export default function BulkUploadPage() {
@@ -50,58 +51,79 @@ export default function BulkUploadPage() {
     setRows(ok.map((file) => ({ file, status: "queued" as RowStatus })));
   }
 
+  async function scoreOne(i: number, file: File, force: boolean) {
+    setRows((prev) =>
+      prev.map((r, idx) => (idx === i ? { ...r, status: "scoring" } : r))
+    );
+    const form = new FormData();
+    form.set("job_id", id);
+    form.set("source", source);
+    form.set("file", file);
+    if (force) form.set("force", "true");
+    try {
+      const res = await fetch("/api/ai/score-candidate", {
+        method: "POST",
+        body: form,
+      });
+      const body = (await res.json().catch(() => null)) as {
+        candidate?: Candidate;
+        ai_error?: string | null;
+        error?: string;
+        duplicates?: { name: string }[];
+      } | null;
+      if (res.status === 409 && body?.duplicates) {
+        setRows((prev) =>
+          prev.map((r, idx) =>
+            idx === i
+              ? {
+                  ...r,
+                  status: "duplicate",
+                  duplicateOf: body.duplicates![0]?.name,
+                }
+              : r
+          )
+        );
+        return;
+      }
+      if (!res.ok || !body?.candidate) {
+        throw new Error(body?.error ?? "Could not score this file.");
+      }
+      setRows((prev) =>
+        prev.map((r, idx) =>
+          idx === i
+            ? {
+                ...r,
+                status: "done",
+                candidateId: body.candidate!.id,
+                name: body.candidate!.name,
+                score: body.candidate!.score,
+              }
+            : r
+        )
+      );
+    } catch (err) {
+      setRows((prev) =>
+        prev.map((r, idx) =>
+          idx === i
+            ? {
+                ...r,
+                status: "error",
+                error: err instanceof Error ? err.message : "Failed.",
+              }
+            : r
+        )
+      );
+    }
+  }
+
   async function runAll() {
     setRunning(true);
     // Sequential, not parallel: each request is independent so a single slow
     // or failed file never blocks the rest, and no batch request risks the
     // 60s serverless timeout.
     for (let i = 0; i < rows.length; i++) {
-      setRows((prev) =>
-        prev.map((r, idx) => (idx === i ? { ...r, status: "scoring" } : r))
-      );
-      const form = new FormData();
-      form.set("job_id", id);
-      form.set("source", source);
-      form.set("file", rows[i].file);
-      try {
-        const res = await fetch("/api/ai/score-candidate", {
-          method: "POST",
-          body: form,
-        });
-        const body = (await res.json().catch(() => null)) as {
-          candidate?: Candidate;
-          ai_error?: string | null;
-          error?: string;
-        } | null;
-        if (!res.ok || !body?.candidate) {
-          throw new Error(body?.error ?? "Could not score this file.");
-        }
-        setRows((prev) =>
-          prev.map((r, idx) =>
-            idx === i
-              ? {
-                  ...r,
-                  status: "done",
-                  candidateId: body.candidate!.id,
-                  name: body.candidate!.name,
-                  score: body.candidate!.score,
-                }
-              : r
-          )
-        );
-      } catch (err) {
-        setRows((prev) =>
-          prev.map((r, idx) =>
-            idx === i
-              ? {
-                  ...r,
-                  status: "error",
-                  error: err instanceof Error ? err.message : "Failed.",
-                }
-              : r
-          )
-        );
-      }
+      if (rows[i].status === "done") continue;
+      await scoreOne(i, rows[i].file, false);
     }
     setRunning(false);
   }
@@ -114,9 +136,9 @@ export default function BulkUploadPage() {
       <PageHeader title="Bulk upload" backHref={`/jobs/${id}`} />
       <ErrorBanner message={pickError} />
 
-      <div className="flex flex-col gap-4 rounded-2xl border border-stone-200 bg-surface p-5 shadow-[0_1px_2px_rgba(33,28,22,0.04)] sm:p-6">
+      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-5 card-shadow sm:p-6">
         <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-stone-700">
+          <span className="text-sm font-medium text-foreground/80">
             Source (applies to all files)
           </span>
           <Segmented
@@ -126,7 +148,7 @@ export default function BulkUploadPage() {
           />
         </div>
 
-        <label className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-stone-300 bg-surface px-5 text-base font-medium text-stone-700 hover:bg-stone-50 active:bg-stone-100">
+        <label className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-border bg-surface px-5 text-base font-medium text-foreground/80 hover:bg-subtle active:bg-subtle">
           {rows.length > 0
             ? `${rows.length} file${rows.length === 1 ? "" : "s"} selected`
             : "Select resumes (PDF / DOCX / TXT)"}
@@ -140,7 +162,7 @@ export default function BulkUploadPage() {
           />
         </label>
 
-        <p className="text-xs text-stone-400">
+        <p className="text-xs text-faint">
           Names are extracted automatically from each resume by the AI.
           Contact details are removed before the resume is sent to the AI —
           the full text stays in your own database.
@@ -160,7 +182,7 @@ export default function BulkUploadPage() {
           {rows.map((row, i) => (
             <div
               key={i}
-              className="flex items-center justify-between gap-3 rounded-xl border border-stone-200 bg-surface px-4 py-3"
+              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground">
@@ -172,7 +194,7 @@ export default function BulkUploadPage() {
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {row.status === "queued" && (
-                  <span className="text-xs text-stone-400">Queued</span>
+                  <span className="text-xs text-faint">Queued</span>
                 )}
                 {row.status === "scoring" && <Spinner className="size-4" />}
                 {row.status === "done" && (
@@ -196,6 +218,20 @@ export default function BulkUploadPage() {
                   <span className="text-xs font-medium text-red-500">
                     Failed
                   </span>
+                )}
+                {row.status === "duplicate" && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-amber-700">
+                      Duplicate{row.duplicateOf ? ` of ${row.duplicateOf}` : ""}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => scoreOne(i, row.file, true)}
+                      className="text-xs font-medium text-accent underline"
+                    >
+                      Add anyway
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

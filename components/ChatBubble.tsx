@@ -1,5 +1,6 @@
 "use client";
 
+import { MessageCircle, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -52,25 +53,29 @@ export function ChatBubble() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Ask the assistant"
-        className="fixed right-4 bottom-4 z-30 flex size-14 items-center justify-center rounded-full bg-accent text-2xl text-white shadow-lg hover:bg-accent-hover sm:right-6 sm:bottom-6"
+        className="fixed right-4 bottom-4 z-30 flex size-14 items-center justify-center rounded-full bg-accent text-white shadow-lg transition-transform hover:bg-accent-hover active:scale-95 sm:right-6 sm:bottom-6"
       >
-        {open ? "✕" : "💬"}
+        {open ? (
+          <X className="size-6" aria-hidden />
+        ) : (
+          <MessageCircle className="size-6" aria-hidden />
+        )}
       </button>
 
       {open && (
-        <div className="fixed right-4 bottom-20 z-30 flex h-[70dvh] max-h-[560px] w-[calc(100vw-2rem)] max-w-sm flex-col rounded-2xl border border-stone-200 bg-surface shadow-xl sm:right-6">
-          <div className="border-b border-stone-200 px-4 py-3">
+        <div className="anim-panel fixed right-4 bottom-20 z-30 flex h-[70dvh] max-h-[560px] w-[calc(100vw-2rem)] max-w-sm origin-bottom-right flex-col rounded-2xl border border-border bg-surface shadow-xl sm:right-6">
+          <div className="border-b border-border px-4 py-3">
             <p className="text-sm font-semibold text-foreground">
               Ask about your pipeline
             </p>
-            <p className="text-xs text-stone-400">
+            <p className="text-xs text-faint">
               e.g. &ldquo;which candidates are strong in React?&rdquo;
             </p>
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 py-3">
             {messages.length === 0 && (
-              <p className="text-sm text-stone-400">
+              <p className="text-sm text-faint">
                 Ask anything about your jobs and candidates — I&apos;ll answer
                 from what&apos;s stored here.
               </p>
@@ -82,7 +87,7 @@ export function ChatBubble() {
                   className={`rounded-xl px-3 py-2 text-sm ${
                     m.role === "user"
                       ? "ml-6 bg-accent-soft text-accent-ink"
-                      : "mr-6 bg-stone-50 text-stone-700"
+                      : "mr-6 bg-subtle text-foreground/80"
                   }`}
                 >
                   <p className="whitespace-pre-wrap">{m.text}</p>
@@ -92,7 +97,7 @@ export function ChatBubble() {
                         <Link
                           key={c.id}
                           href={c.type === "job" ? `/jobs/${c.id}` : `/candidates`}
-                          className="rounded-full bg-white px-2 py-0.5 text-xs text-accent underline"
+                          className="rounded-full bg-surface px-2 py-0.5 text-xs text-accent underline"
                         >
                           {c.label}
                         </Link>
@@ -102,7 +107,7 @@ export function ChatBubble() {
                 </div>
               ))}
               {asking && (
-                <div className="mr-6 flex items-center gap-2 rounded-xl bg-stone-50 px-3 py-2 text-stone-400">
+                <div className="mr-6 flex items-center gap-2 rounded-xl bg-subtle px-3 py-2 text-faint">
                   <Spinner className="size-4" />
                   <span className="text-sm">Thinking…</span>
                 </div>
@@ -110,14 +115,14 @@ export function ChatBubble() {
             </div>
           </div>
 
-          <div className="border-t border-stone-200 p-3">
+          <div className="border-t border-border p-3">
             <div className="flex items-center gap-2">
               <input
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && ask(question)}
                 placeholder="Ask a question…"
-                className="min-h-11 flex-1 rounded-xl border border-stone-300 px-3 text-sm text-foreground focus:border-accent focus:outline-none"
+                className="min-h-11 flex-1 rounded-xl border border-border px-3 text-sm text-foreground focus:border-accent focus:outline-none"
               />
               <VoiceInput mode="raw" onResult={ask} compact />
             </div>
