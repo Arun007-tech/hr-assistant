@@ -23,6 +23,7 @@ export default function LoginPage() {
       });
       const body = await res.json().catch(() => null);
       if (!res.ok) throw new Error(body?.error ?? "Login failed");
+      sessionStorage.setItem("hr-assistant:show-welcome", "1");
       router.replace("/");
       router.refresh();
     } catch (err) {

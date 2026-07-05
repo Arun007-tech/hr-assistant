@@ -8,6 +8,7 @@ import { ErrorBanner } from "@/components/ErrorBanner";
 import { PageHeader } from "@/components/PageHeader";
 import { SkeletonCard } from "@/components/Skeleton";
 import { TodayBrief } from "@/components/TodayBrief";
+import { WelcomeBackModal } from "@/components/WelcomeBackModal";
 import { api } from "@/lib/client";
 import { formatDate } from "@/lib/format";
 import type { JobListItem } from "@/lib/schemas";
@@ -19,10 +20,25 @@ const countStyles: Record<string, string> = {
   rejected: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
 };
 
+// Set by the login page right after a successful unlock. Reading this is
+// pure (no side effect) so it's safe under React Strict Mode's dev-only
+// double-invoke of useState initializers; clearing it happens separately
+// in an effect below, where removing an already-removed key is a harmless
+// no-op — that's what makes it safe to run twice.
+function readShowWelcome(): boolean {
+  if (typeof window === "undefined") return false;
+  return sessionStorage.getItem("hr-assistant:show-welcome") === "1";
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [jobs, setJobs] = useState<JobListItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showWelcome, setShowWelcome] = useState(readShowWelcome);
+
+  useEffect(() => {
+    sessionStorage.removeItem("hr-assistant:show-welcome");
+  }, []);
 
   useEffect(() => {
     api<JobListItem[]>("/api/jobs")
@@ -32,10 +48,13 @@ export default function DashboardPage() {
 
   return (
     <>
+      {showWelcome && (
+        <WelcomeBackModal onClose={() => setShowWelcome(false)} />
+      )}
       <div className="relative">
         <div
           aria-hidden
-          className="accent-glow pointer-events-none absolute -top-10 -left-10 -z-10 size-56 rounded-full bg-accent/15 blur-3xl"
+          className="accent-glow pointer-events-none absolute -top-10 -left-10 -z-10 size-56 rounded-full blur-3xl"
         />
         <PageHeader
           title="Roles"

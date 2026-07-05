@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { DuplicateWarning } from "@/components/DuplicateWarning";
 import { ErrorBanner } from "@/components/ErrorBanner";
@@ -20,12 +20,15 @@ const MAX_FILE_BYTES = 4 * 1024 * 1024;
 // Quick capture hands off a suspected candidate profile via sessionStorage
 // (the text is often too long/sensitive for a URL query param). Read once,
 // synchronously, before first render — not in an effect — so there's no
-// flash of empty fields and no cascading setState-in-effect render.
+// flash of empty fields. Reading is pure (no side effect), which matters
+// because React Strict Mode double-invokes useState initializers in dev —
+// a read-and-clear version would have its second invocation see an
+// already-cleared key and silently lose the prefill. Clearing happens
+// separately below, where removing an already-removed key is a no-op.
 function readCandidatePrefill(): { name: string; text: string } {
   if (typeof window === "undefined") return { name: "", text: "" };
   const raw = sessionStorage.getItem(CANDIDATE_PREFILL_KEY);
   if (!raw) return { name: "", text: "" };
-  sessionStorage.removeItem(CANDIDATE_PREFILL_KEY);
   try {
     const prefill = JSON.parse(raw) as { name?: string; text?: string };
     return { name: prefill.name ?? "", text: prefill.text ?? "" };
@@ -38,6 +41,9 @@ export default function NewCandidatePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [prefill] = useState(readCandidatePrefill);
+  useEffect(() => {
+    sessionStorage.removeItem(CANDIDATE_PREFILL_KEY);
+  }, []);
   const [name, setName] = useState(prefill.name);
   const [source, setSource] = useState<CandidateSource>("linkedin");
   const [resumeText, setResumeText] = useState(prefill.text);

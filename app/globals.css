@@ -72,6 +72,25 @@
   --accent-ink: #a8c5e0;
 }
 
+/* Background tints — orthogonal to accent/style, selected via [data-bg] on
+   <html>. "neutral" is the default above and needs no block of its own. */
+[data-bg="warm"] {
+  --background: #faf6ef;
+  --subtle-bg: #f3ece0;
+}
+[data-bg="warm"].dark {
+  --background: #14100a;
+  --subtle-bg: #1f1810;
+}
+[data-bg="cool"] {
+  --background: #eef4fb;
+  --subtle-bg: #e3ecf7;
+}
+[data-bg="cool"].dark {
+  --background: #080f1a;
+  --subtle-bg: #101b2c;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -216,22 +235,74 @@ body {
 /* Style presets — orthogonal to accent, selected via [data-style] on <html>.
    "charming" (today's default look above) needs no block of its own.
    Uses rgb(var(--x-rgb) / n) instead of color-mix() — see note above. */
+:root {
+  --glow-alpha: 0.15;
+}
+[data-style="enterprise"] {
+  --glow-alpha: 0;
+}
+[data-style="glass"] {
+  --glow-alpha: 0.4;
+}
+
+/* Ambient color wash — ordinary pages get one soft blob (accent-glow, sized
+   per-page); glass style additionally gets full-viewport blobs so backdrop
+   blur has something to actually diffuse (see .ambient-glow below). Both
+   read the same --glow-alpha so enterprise can zero them out in one place. */
+.accent-glow {
+  background-color: rgb(var(--accent-rgb) / var(--glow-alpha));
+}
+
 [data-style="enterprise"] .card-shadow {
   box-shadow: none;
   border-color: var(--border);
 }
-[data-style="enterprise"] .accent-glow {
-  display: none;
-}
 
 [data-style="glass"] .card-shadow {
-  @apply backdrop-blur-xl;
-  background: rgb(var(--surface-rgb) / 0.72);
-  border-color: rgb(var(--accent-rgb) / 0.2);
+  @apply backdrop-blur-2xl backdrop-saturate-150;
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 0.25), transparent 45%),
+    rgb(var(--surface-rgb) / 0.72);
+  border-color: rgb(var(--accent-rgb) / 0.25);
   box-shadow: 0 8px 30px -12px rgb(var(--accent-rgb) / 0.35);
 }
-[data-style="glass"] .accent-glow {
-  opacity: 1.6;
+
+.ambient-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -20;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+[data-style="glass"] .ambient-glow {
+  opacity: 1;
+}
+.ambient-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  background-color: rgb(var(--accent-rgb) / var(--glow-alpha));
+  transition: background-color 0.3s ease;
+}
+.ambient-blob-1 {
+  top: -15%;
+  left: -10%;
+  width: 45vw;
+  height: 45vw;
+}
+.ambient-blob-2 {
+  top: 10%;
+  right: -15%;
+  width: 38vw;
+  height: 38vw;
+}
+.ambient-blob-3 {
+  bottom: -20%;
+  left: 25%;
+  width: 50vw;
+  height: 50vw;
 }
 
 .glow-focus {

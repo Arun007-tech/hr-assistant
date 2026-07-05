@@ -17,8 +17,10 @@ const APPEARANCE_SCRIPT = `
   try {
     var accent = localStorage.getItem("hr-assistant:accent") || "sky";
     var style = localStorage.getItem("hr-assistant:style") || "charming";
+    var bg = localStorage.getItem("hr-assistant:background") || "neutral";
     document.documentElement.setAttribute("data-accent", accent);
     document.documentElement.setAttribute("data-style", style);
+    document.documentElement.setAttribute("data-bg", bg);
   } catch (e) {}
 })();
 `;
@@ -71,6 +73,11 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <script dangerouslySetInnerHTML={{ __html: APPEARANCE_SCRIPT }} />
+        <div className="ambient-glow" aria-hidden>
+          <span className="ambient-blob ambient-blob-1" />
+          <span className="ambient-blob ambient-blob-2" />
+          <span className="ambient-blob ambient-blob-3" />
+        </div>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AppearanceProvider>
             <CommandPaletteProvider>
