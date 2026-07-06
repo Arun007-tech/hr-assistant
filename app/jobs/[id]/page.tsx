@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -15,7 +16,7 @@ import { StatusPill } from "@/components/StatusPill";
 import { TalentPoolSuggestions } from "@/components/TalentPoolSuggestions";
 import { api, patchJson, postJson } from "@/lib/client";
 import { downloadCsv } from "@/lib/csv";
-import { formatDate } from "@/lib/format";
+import { formatDate, linkedinPeopleSearchUrl } from "@/lib/format";
 import {
   CANDIDATE_STATUSES,
   type InterviewPlan,
@@ -57,7 +58,15 @@ function scoreColor(score: number): string {
   return "text-red-600";
 }
 
-function SearchStrings({ label, strings }: { label: string; strings: string[] }) {
+function SearchStrings({
+  label,
+  strings,
+  platform,
+}: {
+  label: string;
+  strings: string[];
+  platform?: "linkedin";
+}) {
   if (strings.length === 0) return null;
   return (
     <div className="mb-4 last:mb-0">
@@ -68,6 +77,17 @@ function SearchStrings({ label, strings }: { label: string; strings: string[] })
             <code className="min-w-0 flex-1 rounded-lg bg-subtle p-3 font-mono text-sm break-words whitespace-pre-wrap text-foreground">
               {s}
             </code>
+            {platform === "linkedin" && (
+              <a
+                href={linkedinPeopleSearchUrl(s)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Search LinkedIn people with this string"
+                className="flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-subtle px-3 text-foreground/80 transition-colors hover:bg-subtle/80"
+              >
+                <ExternalLink className="size-4" aria-hidden />
+              </a>
+            )}
             <CopyButton text={s} />
           </div>
         ))}
@@ -387,7 +407,11 @@ export default function JobPage() {
 
             {searches && (
               <Card title="Search strings">
-                <SearchStrings label="LinkedIn" strings={searches.linkedin} />
+                <SearchStrings
+                  label="LinkedIn"
+                  strings={searches.linkedin}
+                  platform="linkedin"
+                />
                 <SearchStrings label="Naukri" strings={searches.naukri} />
                 {searches.apna_keywords.length > 0 && (
                   <div>

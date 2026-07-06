@@ -1,5 +1,6 @@
 "use client";
 
+import { ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -8,6 +9,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Segmented } from "@/components/Segmented";
 import { VoiceInput } from "@/components/VoiceInput";
 import { postJson } from "@/lib/client";
+import { linkedinPeopleSearchUrl } from "@/lib/format";
 import {
   TONES,
   type ComposedEmail,
@@ -320,10 +322,10 @@ function BooleanTool() {
         <div className="mt-4 flex flex-col gap-3">
           {(
             [
-              ["LinkedIn", result.linkedin],
-              ["Naukri", result.naukri],
+              ["LinkedIn", result.linkedin, true],
+              ["Naukri", result.naukri, false],
             ] as const
-          ).map(([label, strings]) => (
+          ).map(([label, strings, isLinkedin]) => (
             <div key={label}>
               <p className="mb-1.5 text-xs font-semibold tracking-wide text-faint uppercase">
                 {label}
@@ -334,10 +336,23 @@ function BooleanTool() {
                     key={i}
                     className="flex items-start justify-between gap-2 rounded-lg bg-subtle p-2.5"
                   >
-                    <code className="text-xs break-words text-foreground/80">
+                    <code className="min-w-0 flex-1 text-xs break-words text-foreground/80">
                       {s}
                     </code>
-                    <CopyButton text={s} />
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      {isLinkedin && (
+                        <a
+                          href={linkedinPeopleSearchUrl(s)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label="Search LinkedIn people with this string"
+                          className="flex min-h-8 min-w-8 items-center justify-center rounded-lg text-foreground/80 transition-colors hover:bg-surface"
+                        >
+                          <ExternalLink className="size-3.5" aria-hidden />
+                        </a>
+                      )}
+                      <CopyButton text={s} />
+                    </div>
                   </div>
                 ))}
               </div>

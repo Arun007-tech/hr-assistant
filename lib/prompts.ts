@@ -58,8 +58,21 @@ Analyze the job description below and produce:
 
 2. boolean_searches — search strings the recruiter will paste manually into each platform:
    - linkedin: 3-4 full Boolean strings using AND, OR, NOT, quotes and parentheses.
-     Include one broad variant, one narrow/precise variant, and one title-focused variant.
-     Include common synonyms and abbreviations (e.g. "Kubernetes" OR "K8s").
+     LinkedIn's basic search frequently returns ZERO results once a query has 4+
+     AND-joined groups, or when a required group only matches uncommon/jargon-y
+     literal phrasing — this is a common real-world failure, not a hypothetical.
+     To avoid that:
+     - The broad variant MUST use at most 2 AND-joined groups, each a generous OR
+       list of common synonyms — this one should reliably return candidates.
+     - The narrow/precise variant may use up to 3 AND-joined groups, and is where
+       niche/compound requirements (certifications, a specific tool combo, a
+       specific customer segment) belong — never put those in the broad variant.
+     - The title-focused variant leads with likely_titles OR'd together, optionally
+       AND'd with one broad qualifier.
+     - Prefer common phrasing a candidate would actually write on their profile
+       over jargon from the JD — e.g. if the JD says "GeM/e-procurement", also OR
+       in "government sales"/"public sector"/"tender" so the clause isn't relying
+       on one narrow literal phrase.
    - naukri: 3-4 keyword strings for Naukri's keyword search (Boolean AND/OR/NOT and
      quotes are supported there, but keep strings shorter and keyword-dense; do not
      include location or experience — those are separate filters on Naukri).
@@ -711,7 +724,10 @@ export const composedEmailResponseSchema = {
 export function composeEmailPrompt(input: { brief: string; tone: Tone }): string {
   return `A recruiter needs to send an email. Write it in a ${input.tone} tone,
 first person (as the recruiter, sender), ready to send with minimal editing.
-Include a greeting and a sign-off placeholder like "[Your name]".
+Include a greeting and a sign-off placeholder like "[Your name]". Keep the
+body to 3-6 short paragraphs at most — concise and to the point, not padded
+out. Base it strictly on what she told you below; do not invent specifics
+(names, dates, numbers) she didn't mention.
 
 WHAT SHE TOLD YOU ABOUT IT (who it's to, what it's about — may be rough notes):
 """
@@ -822,8 +838,13 @@ export function booleanGeneratorPrompt(skillsOrKeywords: string): string {
 of skills/keywords (no full job description exists yet). Produce Boolean
 search strings the recruiter will paste manually into each platform:
 - linkedin: 3-4 full Boolean strings using AND, OR, NOT, quotes and
-  parentheses. Include one broad variant and one narrow/precise variant.
-  Include common synonyms and abbreviations (e.g. "Kubernetes" OR "K8s").
+  parentheses. LinkedIn's basic search frequently returns ZERO results once a
+  query has 4+ AND-joined groups, or when a required group only matches
+  uncommon/jargon-y literal phrasing — a common real-world failure, not
+  hypothetical. The broad variant MUST use at most 2 AND-joined groups, each
+  a generous OR list of common synonyms, so it reliably returns candidates;
+  save niche/compound requirements for the narrow variant (up to 3 groups),
+  and prefer common phrasing a candidate would actually write over jargon.
 - naukri: 3-4 keyword strings for Naukri's keyword search — shorter,
   keyword-dense, no location/experience (those are separate filters there).
 - apna_keywords: 5-8 short single keywords or two-word phrases.
