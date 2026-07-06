@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SESSION_COOKIE, isValidSessionToken } from "@/lib/session";
+import { SESSION_COOKIE, isValidSessionToken, setSessionCookie } from "@/lib/session";
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -8,10 +8,13 @@ export default async function proxy(request: NextRequest) {
   );
 
   if (authed) {
-    if (pathname === "/login") {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
-    return NextResponse.next();
+    const response =
+      pathname === "/login"
+        ? NextResponse.redirect(new URL("/", request.url))
+        : NextResponse.next();
+    // Sliding idle timeout: every authenticated request resets the clock.
+    await setSessionCookie(response);
+    return response;
   }
 
   if (pathname === "/login" || pathname === "/api/auth") {

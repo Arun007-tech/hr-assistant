@@ -1,10 +1,6 @@
 import { createHash, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
-import {
-  SESSION_COOKIE,
-  SESSION_DAYS,
-  createSessionToken,
-} from "@/lib/session";
+import { clearSessionCookie, setSessionCookie } from "@/lib/session";
 
 function safeEqual(a: string, b: string): boolean {
   const ha = createHash("sha256").update(a).digest();
@@ -30,18 +26,12 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(SESSION_COOKIE, await createSessionToken(), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_DAYS * 24 * 60 * 60,
-  });
+  await setSessionCookie(response);
   return response;
 }
 
 export async function DELETE() {
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(SESSION_COOKIE, "", { path: "/", maxAge: 0 });
+  clearSessionCookie(response);
   return response;
 }
